@@ -217,3 +217,48 @@ test('optional suggestions do not trigger an author call after reviewer approval
 test('the author cannot be assigned as their own reviewer', async () => {
   await assert.rejects(autoReviewChapter({ author: 'codex', reviewer: 'codex' }), { code: 'INVALID_ROLES' });
 });
+
+test('repeating an approved cycle reuses its validated result without model calls or new cycles', async () => {
+  await fixture(async options => {
+    const runtime = { ask: async request => ({ text: JSON.stringify(verdict(request, { approved: true })) }) };
+    const first = await autoReviewChapter({ ...options, runtime });
+    const second = await autoReviewChapter({ ...options, runtime: { ask: () => { throw new Error('Must not run'); } } });
+    assert.equal(second.reused, true);
+    assert.equal(second.cycleDir, first.cycleDir);
+    assert.equal(second.cycle.approved, true);
+  });
+});
+
+test('modified chapter, scope, evidence, roles and explicit force each require a fresh review', async () => {
+  for (const changed of ['chapterPath', 'scopePath', 'evidencePath', 'roles', 'force']) {
+    await fixture(async options => {
+      let calls = 0;
+      const runtime = { ask: async request => { calls++; return { text: JSON.stringify(verdict(request, { approved: true })) }; } };
+      const first = await autoReviewChapter({ ...options, runtime });
+      if (changed.endsWith('Path')) {
+        const before = await readFile(options[changed], 'utf8');
+        await writeFile(options[changed], before + '\n');
+      }
+      const second = await autoReviewChapter({ ...options, runtime,
+        ...(changed === 'roles' ? { author: 'claude', reviewer: 'codex' } : {}), forceReview: changed === 'force' });
+      assert.equal(calls, 2, changed);
+      assert.notEqual(second.cycleDir, first.cycleDir, changed);
+      assert.equal(second.cycle.approved, true);
+    });
+  }
+});
+
+test('damaged dictamen cannot be reused even if the cycle says approved', async () => {
+  await fixture(async options => {
+    let calls = 0;
+    const runtime = { ask: async request => { calls++; return { text: JSON.stringify(verdict(request, { approved: true })) }; } };
+    const first = await autoReviewChapter({ ...options, runtime });
+    const path = join(first.cycle.rounds[0].runDir, 'manifest.json');
+    const manifest = JSON.parse(await readFile(path, 'utf8'));
+    manifest.reviews.claude.review.criteria = [];
+    await writeFile(path, JSON.stringify(manifest));
+    const second = await autoReviewChapter({ ...options, runtime });
+    assert.equal(calls, 2);
+    assert.notEqual(second.cycleDir, first.cycleDir);
+  });
+});

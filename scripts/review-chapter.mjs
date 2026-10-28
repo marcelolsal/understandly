@@ -12,7 +12,9 @@ try {
   const values = {};
   let automatic = false;
   let human = false;
+  let forceReview = false;
   for (let i = 0; i < args.length; i++) {
+    if (args[i] === '--force-review' && !forceReview) { forceReview = true; continue; }
     if (args[i] === '--auto' && !automatic) { automatic = true; continue; }
     if (args[i] === '--human' && !human) { human = true; continue; }
     if (!['--chapter', '--scope', '--evidence', '--output', '--max-rounds', '--author', '--reviewer'].includes(args[i]) || !args[i + 1] || values[args[i]])
@@ -20,7 +22,7 @@ try {
     const key = args[i];
     values[key] = args[++i];
   }
-  if (!values['--chapter'] || !values['--evidence'] || (!automatic && values['--max-rounds']))
+  if (!values['--chapter'] || !values['--evidence'] || (!automatic && (values['--max-rounds'] || forceReview)))
     throw Object.assign(new Error(), { code: 'USAGE' });
   const author = values['--author'] ?? 'codex';
   const reviewer = values['--reviewer'] ?? (author === 'codex' ? 'claude' : 'codex');
@@ -29,11 +31,11 @@ try {
   const options = { runtime: createRuntime({ config: await loadConfig() }),
     chapterPath: values['--chapter'], evidencePath: values['--evidence'],
     scopePath: values['--scope'] ?? resolve('docs/pilots/docker.md'), outputDir: values['--output'],
-    author, reviewer, reviewers: [reviewer], signal: controller.signal, onProgress: event => console.log(human ? formatProgress(event) : JSON.stringify(event)) };
+    forceReview, author, reviewer, reviewers: [reviewer], signal: controller.signal, onProgress: event => console.log(human ? formatProgress(event) : JSON.stringify(event)) };
   const result = automatic ? await autoReviewChapter({ ...options, maxRounds: Number(values['--max-rounds'] ?? 3) })
     : await reviewChapter(options);
   const status = result.cycle ?? result.manifest;
-  console.log(JSON.stringify({ status: status.status, approved: status.approved,
+  console.log(JSON.stringify({ status: status.status, approved: status.approved, reused: result.reused ?? false,
     ...(status.reason ? { reason: status.reason } : {}), runDir: result.cycleDir ?? result.runDir,
     report: `${result.cycleDir ?? result.runDir}/report.md` }));
   if (!status.approved) process.exitCode = 1;

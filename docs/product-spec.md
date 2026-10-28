@@ -95,6 +95,7 @@ La rúbrica conserva exactitud y fuentes, alcance, secuencia, explicaciones y vi
 Registrar roles, proveedor, modelo disponible, huellas de contenido, alcance y evidencias, dictamen y cambios. La autoría no cuenta como un segundo dictamen.
 Un cambio de contenido invalida el dictamen anterior para la nueva versión. Las aprobaciones dobles históricas permanecen intactas bajo su política original.
 Máximo predeterminado de 3 rondas, configurable entre 1 y 10; detener ante falta de evidencia, fallo, ausencia de progreso o cambios externos. Nunca forzar un sí ni inventar fuentes.
+Repetir el comando automático con las mismas entradas y roles reutiliza una aprobación validada del historial, sin nuevas consultas. Una revisión deliberada puede solicitarse con --force-review.
 La revisión no garantiza exactitud absoluta ni aprendizaje. La revisión doble del tutor en vivo no está acordada. El feedback del estudiante puede reabrir contenido aprobado.
 
 ## 8. Consultas contextuales

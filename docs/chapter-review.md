@@ -39,6 +39,17 @@ Se conserva la rúbrica: exactitud y fuentes, alcance, secuencia, explicaciones 
 Evidencias: JSON con sources, lista no vacía de objetos con id numérico único como string, url HTTPS y excerpt. El manuscrito usa citas [1, 2] y referencias `1. https://...`. Se comprueba correspondencia exacta de identificadores y URL antes de consultar al modelo.
 El revisor contrasta los extractos suministrados: no visita URLs. Ante una afirmación esencial sin respaldo, solicita evidencia. No se descargan fuentes automáticamente ni se ejecutan instrucciones incrustadas en materiales.
 
+## Cierre y ejecuciones repetidas
+
+Auto busca primero una aprobación anterior con los mismos roles y las mismas entradas. Comprueba huellas de capítulo, alcance y evidencias, snapshot original, esquema y dictamen válido del revisor. Si coincide, devuelve approved con reused: true, enlaza el informe existente y termina sin llamar a los modelos ni crear otro ciclo. No modifica el manuscrito ni el historial.
+Cambiar cualquiera de esas entradas o los roles requiere una nueva revisión. --output limita la búsqueda al historial de ese directorio. Para solicitar otra revisión deliberadamente:
+
+```bash
+npm run review:docker:auto -- --force-review
+```
+
+El comando sin --auto sigue realizando una revisión nueva a petición del usuario. Las sugerencias opcionales no requieren volver a ejecutar el ciclo.
+
 ## Límites y resultados
 
 Por defecto hay hasta 3 rondas, configurable entre 1 y 10. Con 3 rondas el máximo normal es 3 revisiones y 2 correcciones (antes eran 6 revisiones y 2 correcciones). La última ronda no aplica una corrección sin posterior revisión. Esto reduce llamadas, pero no garantiza que un capítulo requiera menos rondas.

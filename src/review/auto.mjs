@@ -4,6 +4,7 @@ import { randomUUID } from 'node:crypto';
 import { reviewChapter, sha256, readBounded, outsideGit, save } from './index.mjs';
 import { RuntimeError } from '../runtime/process.mjs';
 import { validateReferences } from './references.mjs';
+import { findApproval } from './approval.mjs';
 import { renderCycleReport } from './report.mjs';
 
 const string = { type: 'string' };
@@ -51,7 +52,7 @@ function bumpRevision(chapter, previous) {
 }
 
 export async function autoReviewChapter({ runtime, chapterPath, scopePath, evidencePath, outputDir,
-  maxRounds = 3, author = 'codex', reviewer = 'claude', signal, onProgress = () => {}, review = reviewChapter }) {
+  maxRounds = 3, author = 'codex', reviewer = 'claude', forceReview = false, signal, onProgress = () => {}, review = reviewChapter }) {
   if (!['codex', 'claude'].includes(author) || !['codex', 'claude'].includes(reviewer) || author === reviewer)
     throw new RuntimeError('INVALID_ROLES', 'Autor y revisor deben ser proveedores distintos.');
   if (!Number.isInteger(maxRounds) || maxRounds < 1 || maxRounds > 10)
@@ -71,6 +72,13 @@ export async function autoReviewChapter({ runtime, chapterPath, scopePath, evide
     const output = resolve(outputDir ?? join(dirname(chapterPath), '..', 'auto-reviews'));
     await mkdir(output, { recursive: true, mode: 0o700 });
     await outsideGit(output);
+    if (!forceReview && !signal?.aborted) {
+      const prior = await findApproval({ output, chapterPath, scopePath, evidencePath, author, reviewer });
+      if (prior) {
+        onProgress({ status: 'already_approved', message: 'Este capítulo ya está aprobado para estas entradas y roles. Proceso terminado sin nuevas consultas.' });
+        return prior;
+      }
+    }
     const cycleDir = join(output, `${new Date().toISOString().replace(/[:.]/g, '-')}-${randomUUID().slice(0, 8)}`);
     await mkdir(cycleDir, { mode: 0o700 });
     const cycle = { status: 'running', approved: false, maxRounds, rounds: [],
