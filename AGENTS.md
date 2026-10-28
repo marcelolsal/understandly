@@ -5,7 +5,7 @@ La especificación identifica decisiones acordadas, propuestas y cuestiones abie
 
 ## Alcance actual
 
-Autorizados: documentación, runtime local para Codex y Claude Code, pruebas reales, autoría y revisión por proveedores distintos y corrección automática acotada de capítulos con informes claros. No ampliar al servidor HTTP, interfaz o despliegue sin nueva instrucción. No instalar dependencias innecesarias.
+Autorizados: documentación, runtime local para Codex y Claude Code, pruebas reales, autoría y revisión por proveedores distintos y corrección automática acotada de capítulos con informes claros. Autorizada también la primera pantalla de estudio Astro, servidor local, tutoría contextual, ejercicios, notas y reanudación. No desplegar ni exponer a internet. No instalar dependencias innecesarias.
 No convertir propuestas pendientes en decisiones confirmadas.
 Documentar cambios de alcance y sus motivos.
 

@@ -4,7 +4,7 @@ Plataforma personal de aprendizaje con contenido estructurado, tutoría contextu
 
 ## Estado
 
-Definición del producto y primera implementación del adaptador CLI local. Todavía no existe interfaz de estudio ni una versión funcional publicada.
+Primera pantalla local de estudio en Astro: lectura de Docker, preguntas contextuales mediante CLI, ejercicios, notas y reanudación. Todavía no existe una versión funcional publicada ni se ha completado la validación visual con el usuario.
 Esta documentación consolida las decisiones del usuario; no constituye una revisión conjunta de OpenAI y Anthropic.
 
 ## Documentación
@@ -27,11 +27,18 @@ Los datos enviados a una API se procesan fuera del equipo; almacenamiento local 
 
 Repositorio conectado al remoto con main, staging y develop. Verificados dos rulesets activos: PR obligatorio, sin bypass, force push ni borrado; squash hacia develop y merge commit hacia staging/main. La excepción para sincronizaciones inversas hacia develop sigue pendiente. No hay tags ni releases todavía.
 
-Piloto elegido: Docker desde cero. Revisar el primer capítulo y conectar el runtime a una experiencia de estudio; todavía no hay interfaz.
+Piloto elegido: Docker desde cero. Primer capítulo conectado a la pantalla de estudio; validar comodidad en desktop/móvil y tutoría real con el usuario. Consulta [Pantalla de estudio](docs/study-reader.md).
 
 ## Runtime inicial
 
-Con Node.js 22.16 o posterior, sin instalar dependencias:
+Con Node.js 22.23.4 o posterior (se usó Node 26.12.0):
+
+```bash
+npm ci
+npm run dev
+```
+
+Abre http://localhost:4321. Los materiales deben existir fuera del repositorio. Detalles en [Pantalla de estudio](docs/study-reader.md).
 
 ```bash
 npm test

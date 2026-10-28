@@ -4,7 +4,7 @@ Implementación inicial: adaptador de consultas y diagnóstico, utilizado por el
 
 ## Requisitos
 
-- Node.js 22.16 o posterior; sin dependencias npm externas.
+- Node.js 22.23.4 o posterior para el proyecto completo. El adaptador CLI usa módulos nativos de Node; la interfaz Astro sí requiere npm ci.
 - Codex CLI instalado y autenticado normalmente con ChatGPT.
 - Claude Code instalado y token propio en CLAUDE_CODE_OAUTH_TOKEN.
 - Internet para consultar los modelos: ejecutar un proceso local no ejecuta el modelo localmente.

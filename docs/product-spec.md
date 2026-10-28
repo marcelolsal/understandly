@@ -1,6 +1,6 @@
 # Especificación de Understandly
 
-Estado: base conceptual acordada, runtime CLI y coordinador de revisión de capítulos autorizados. Interfaz, servidor y demás funciones siguen pendientes de implementación.
+Estado: base conceptual acordada, runtime CLI, coordinador de revisión y primera pantalla de estudio local implementados. Validación visual y experiencia real con el usuario pendientes.
 Las propuestas y decisiones pendientes se identifican por separado. Este documento es la referencia compartida entre asistentes.
 
 ## 1. Propósito
@@ -168,7 +168,7 @@ Acordado:
 - Exportación, respaldo y portabilidad.
 - Lectura y actividades sin IA disponibles cuando la API falle, según recursos almacenados.
 
-Propuestas pendientes de validar: React para interacciones, Markdown/MDX con metadatos para contenido, SQLite para persistencia.
+Primera implementación autorizada: Astro SSR con adaptador Node, componentes React y patrones de shadcn/ui para controles, Markdown saneado y JSON local con escrituras serializadas y atómicas para notas e intentos. SQLite y MDX siguen pendientes, sin adoptarse por esta implementación.
 Definir directorio de datos configurable; evitar rutas absolutas del equipo.
 Almacenamiento local no significa procesamiento local: explicitar qué se envía a APIs.
 El repositorio público no concede a asistentes acceso a materiales privados.
@@ -196,7 +196,7 @@ No declarar exitoso el piloto antes de verificarlo con el usuario.
 - Implementación e interoperabilidad efectiva con estándares.
 
 No declarar conformidad con CASE, Common Cartridge u otros estándares sin implementarla y verificarla.
-Autorizados runtime CLI, sus pruebas, revisión por otro proveedor y ciclo automático de corrección acotado con informes antes/después. Interfaz Astro, servidor HTTP y demás funciones necesitan definición adicional; no ampliar silenciosamente el alcance.
+Autorizados runtime CLI, revisión por otro proveedor, ciclo automático acotado y primera experiencia Astro local: lectura adaptable, preguntas contextuales, notas, ejercicios y reanudación. No se autoriza despliegue público. Detalles y límites en [Pantalla de estudio](study-reader.md).
 
 ## 15. Referencias
 
