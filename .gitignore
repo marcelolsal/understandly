@@ -1,0 +1,34 @@
+# Dependencies and build outputs
+node_modules/
+dist/
+.astro/
+coverage/
+
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Private data belongs outside this repository.
+# These exclusions are an additional guard, not the storage design.
+/data/
+/local-data/
+/materials/
+/uploads/
+/generated-courses/
+/backups/
+/exports/
+/logs/
+*.db
+*.db-*
+*.sqlite
+*.sqlite-*
+*.sqlite3
+*.sqlite3-*
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
