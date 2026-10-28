@@ -196,7 +196,7 @@ No declarar exitoso el piloto antes de verificarlo con el usuario.
 - Implementación e interoperabilidad efectiva con estándares.
 
 No declarar conformidad con CASE, Common Cartridge u otros estándares sin implementarla y verificarla.
-Autorizados runtime CLI, revisión por otro proveedor, ciclo automático acotado y primera experiencia Astro local: lectura adaptable, preguntas contextuales, notas, ejercicios y reanudación. No se autoriza despliegue público. Detalles y límites en [Pantalla de estudio](study-reader.md).
+Autorizados runtime CLI, revisión por otro proveedor, ciclo automático acotado y primera experiencia Astro local: lectura adaptable, preguntas contextuales, notas, ejercicios y reanudación. El usuario autorizó mostrar la página mediante forward: se incorpora una vista de solo lectura en proceso separado, sin notas, intentos, progreso ni ejecución de CLI. No se autoriza desplegar públicamente el servicio personal completo. Detalles y límites en [Pantalla de estudio](study-reader.md).
 
 ## 15. Referencias
 

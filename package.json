@@ -21,7 +21,8 @@
     "check": "astro check",
     "test:unit": "node --test tests/*.test.mjs",
     "test:ui": "node --import tsx --test tests/study-ui.spec.tsx",
-    "test:http": "node --test tests/study-http.integration.mjs"
+    "test:http": "node --test tests/study-http.integration.mjs",
+    "share": "node scripts/share.mjs"
   },
   "dependencies": {
     "@astrojs/node": "^11.1.9",

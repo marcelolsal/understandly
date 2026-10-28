@@ -1,11 +1,14 @@
 ---
 import Study from '../components/Study';
 import { loadChapter } from '../server/chapter.mjs';
+import { isSharedPreview } from '../server/access.mjs';
+import { initialState } from '../server/store.mjs';
 import { readState } from '../server/store.mjs';
 import '../styles/global.css';
+const readOnly = isSharedPreview();
 let chapter = null;
 let state = null;
-try { chapter = await loadChapter(); state = await readState(); }
+try { chapter = await loadChapter(); state = readOnly ? initialState() : await readState(); }
 catch { Astro.response.status = 503; }
 ---
 <!doctype html>
@@ -19,7 +22,7 @@ catch { Astro.response.status = 503; }
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   </head>
   <body>
-    {chapter && state ? <Study chapter={chapter} initialState={state} client:load /> :
+    {chapter && state ? <Study readOnly={readOnly} chapter={chapter} initialState={state} client:load /> :
       <main class="setup-message"><p class="eyebrow">Understandly · Configuración</p><h1>Tu material se queda contigo.</h1>
       <p>No se pudo abrir el capítulo de Docker o tus datos de estudio. Revisa el directorio UNDERSTANDLY_DATA_DIR y sus permisos. Si existe un archivo de estudio, consérvalo y comprueba su formato.</p>
       <p>El material debe estar fuera del repositorio, en courses/docker/chapters/01-modelo-mental.md.</p></main>}

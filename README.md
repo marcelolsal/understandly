@@ -29,6 +29,8 @@ Repositorio conectado al remoto con main, staging y develop. Verificados dos rul
 
 Piloto elegido: Docker desde cero. Primer capítulo conectado a la pantalla de estudio; validar comodidad en desktop/móvil y tutoría real con el usuario. Consulta [Pantalla de estudio](docs/study-reader.md).
 
+Para mostrar el capítulo mediante un forward: `npm run build` y `npm run share`, y reenviar el puerto **4322**. La vista compartida es de solo lectura y no expone notas ni los CLI.
+
 ## Runtime inicial
 
 Con Node.js 22.23.4 o posterior (se usó Node 26.12.0):

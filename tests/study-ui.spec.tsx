@@ -74,3 +74,18 @@ test('a failed attempt save never reveals its solution or reports success', asyn
     assert.equal(screen.queryByText('1 intento guardado'), null);
   } finally { cleanup(); globalThis.fetch = originalFetch; window.happyDOM.cancelAsync(); }
 });
+
+
+test('shared preview disables tutor and submission without making state requests', async () => {
+  const originalFetch = globalThis.fetch;
+  const calls = [];
+  globalThis.fetch = async (...args) => { calls.push(args); throw new Error('Must not run'); };
+  try {
+    render(<Study chapter={chapter} readOnly initialState={{ notes: [], attempts: [], position: null }} />);
+    assert.ok(screen.getByText('Vista compartida · Solo lectura'));
+    assert.equal(screen.getByRole('button', { name: 'Preguntar sobre A concept' }).disabled, true);
+    assert.equal(screen.getByRole('button', { name: /Actividad disponible en el espacio personal/ }).disabled, true);
+    await new Promise(resolve => setTimeout(resolve, 1100));
+    assert.equal(calls.length, 0);
+  } finally { cleanup(); globalThis.fetch = originalFetch; window.happyDOM.cancelAsync(); }
+});

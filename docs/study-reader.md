@@ -26,6 +26,20 @@ npm run dev -- --host 0.0.0.0
 
 Usar http://IP-LOCAL-DEL-SERVIDOR:4321 en el teléfono. La compilación admite HOST=0.0.0.0 y PORT=4321 al ejecutar npm start. Solo se aceptan localhost, loopback e IP privadas; no nombres públicos ni proxy. Las cabeceras de proxy no están soportadas. No hay autenticación de usuarios en este piloto: cualquiera con acceso al servicio en esa red puede ver o modificar los datos del único estudiante y consultar los CLI. No exponer a internet; el acceso remoto requiere otra fase.
 
+## Mostrar la página mediante un forward
+
+El servicio personal del puerto 4321 sigue restringido a direcciones locales. Para enseñar el capítulo a alguien sin exponer las APIs ni tus datos:
+
+```bash
+npm run build
+npm run share
+```
+
+Crear el forward hacia el puerto **4322**, no hacia 4321. Este proceso acepta peticiones de lectura desde un host público o un túnel y muestra un aviso de vista compartida. Puede usarse PORT para elegir otro puerto. Se mantiene en loopback por defecto porque el forward corre en el mismo equipo.
+La vista envía el capítulo actual, incluidos los recursos y soluciones del material de estudio, pero no carga ni serializa notas, intentos o posición del estudiante. Todos los endpoints API, incluidos sus GET, están bloqueados por middleware y por los propios handlers. La restricción es global en ese proceso, incluso si el túnel reescribe Host a localhost. No existe permiso especial para llamar a los CLI desde la vista pública.
+Los ajustes de lectura y la navegación funcionan; tutoría y guardado de actividades están desactivados. El servicio personal puede seguir funcionando por separado en 4321. Compartir el enlace permite ver el material a quienes tengan acceso al forward; el control de acceso del enlace depende de la herramienta de túnel.
+No es una implementación de acceso remoto al espacio personal. Ese caso todavía requiere autenticación.
+
 ## Datos y configuración
 
 UNDERSTANDLY_DATA_DIR se lee de la variable de entorno o de .env; por defecto ../work/understandly-data, relativo a la raíz del proyecto desde la que se ejecuta el comando.

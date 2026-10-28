@@ -19,7 +19,7 @@ async function post(path: string, data: unknown, signal?: AbortSignal) {
   return result;
 }
 
-function Diagram({ source, onAsk }: { source: string; onAsk: () => void }) {
+function Diagram({ source, onAsk, readOnly }: { source: string; onAsk: () => void; readOnly: boolean }) {
   const ref = useRef<HTMLDivElement>(null);
   const [error, setError] = useState(false);
   const [expanded, setExpanded] = useState(false);
@@ -35,11 +35,11 @@ function Diagram({ source, onAsk }: { source: string; onAsk: () => void }) {
   return <figure className={`diagram-card ${expanded ? 'expanded' : ''}`}>
     <figcaption><span><span className="small-dot" /> Mapa visual</span><button onClick={() => setExpanded(!expanded)}>{expanded ? 'Reducir' : 'Ampliar'}</button></figcaption>
     {error ? <p>El diagrama no pudo dibujarse. La explicación textual está a continuación.</p> : <div ref={ref} className="diagram" role="img" aria-label="Una imagen origina dos contenedores, cada uno con su propia capa de escritura." />}
-    <button className="diagram-ask" onClick={onAsk}><CircleHelp size={15} /> Preguntar sobre el diagrama</button>
+    <button className="diagram-ask" disabled={readOnly} onClick={onAsk}><CircleHelp size={15} /> Preguntar sobre el diagrama</button>
   </figure>;
 }
 
-function Exercise({ part, section, attempts, save, assisted }: { part: Part; section: string; attempts: Attempt[]; save: (data: object) => Promise<void>; assisted: boolean }) {
+function Exercise({ part, section, attempts, save, assisted, readOnly }: { part: Part; section: string; attempts: Attempt[]; save: (data: object) => Promise<void>; assisted: boolean; readOnly: boolean }) {
   const previous = attempts.filter(a => a.exercise === part.id);
   const [answer, setAnswer] = useState('');
   const [open, setOpen] = useState(false);
@@ -55,8 +55,8 @@ function Exercise({ part, section, attempts, save, assisted }: { part: Part; sec
     <div className="exercise-heading"><span className="eyebrow">Tu turno</span><span>{previous.length ? `${previous.length} intento${previous.length > 1 ? 's' : ''} guardado${previous.length > 1 ? 's' : ''}` : 'Puedes equivocarte aquí'}</span></div>
     <form onSubmit={submit}>
       <label htmlFor={`answer-${part.id}`}>Explica tu razonamiento antes de consultar el feedback.</label>
-      <textarea id={`answer-${part.id}`} value={answer} onChange={e => setAnswer(e.target.value)} placeholder="Creo que… porque…" maxLength={8000} required rows={3} />
-      <div className="exercise-actions"><Button size="sm" disabled={saving || !answer.trim()}>{saving ? 'Guardando…' : 'Guardar intento y ver feedback'}<ArrowRight size={15} /></Button>
+      <textarea id={`answer-${part.id}`} value={answer} onChange={e => setAnswer(e.target.value)} placeholder="Creo que… porque…" maxLength={8000} required rows={3} readOnly={readOnly} />
+      <div className="exercise-actions"><Button size="sm" disabled={readOnly || saving || !answer.trim()}>{readOnly ? 'Actividad disponible en el espacio personal' : saving ? 'Guardando…' : 'Guardar intento y ver feedback'}<ArrowRight size={15} /></Button>
         {previous.length > 0 && <Button type="button" variant="ghost" size="sm" onClick={() => setOpen(!open)}>{open ? 'Ocultar feedback' : 'Ver feedback'}</Button>}</div>
     </form>
     {error && <p role="alert" className="error">{error}</p>}
@@ -65,7 +65,7 @@ function Exercise({ part, section, attempts, save, assisted }: { part: Part; sec
   </div>;
 }
 
-export default function Study({ chapter, initialState }: { chapter: Chapter; initialState: StudyState }) {
+export default function Study({ chapter, initialState, readOnly = false }: { chapter: Chapter; initialState: StudyState; readOnly?: boolean }) {
   const [state, setState] = useState(initialState);
   const [active, setActive] = useState(chapter.sections[0]?.id ?? 'objetivo');
   const [prefs, setPrefs] = useState(defaults);
@@ -101,6 +101,7 @@ export default function Study({ chapter, initialState }: { chapter: Chapter; ini
   const currentIndex = chapter.sections.findIndex(s => s.id === active);
 
   async function save(data: object) {
+    if (readOnly) throw new Error('Vista compartida de solo lectura.');
     const next = await post('/api/study', { ...data, version: chapter.version });
     setState(next);
   }
@@ -133,7 +134,7 @@ export default function Study({ chapter, initialState }: { chapter: Chapter; ini
     return () => observer.disconnect();
   }, []);
   useEffect(() => {
-    if (!ready || restoring.current) return;
+    if (readOnly || !ready || restoring.current) return;
     const timer = setTimeout(() => {
       post('/api/study', { type: 'position', section: active, version: chapter.version }).catch(() => setNotice('No se pudo guardar la posición. Puedes seguir leyendo.'));
     }, 900);
@@ -154,6 +155,7 @@ export default function Study({ chapter, initialState }: { chapter: Chapter; ini
   }, [context]);
   function go(id: string) { setActive(id); setNavigation(false); document.getElementById(id)?.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' }); }
   function ask(selected: Selection, selectedMode = 'explain') {
+    if (readOnly) return;
     dialogTrigger.current = document.activeElement as HTMLElement;
     setContext(selected); setHistory([]); setQuestion(''); setError(''); setMode(selectedMode); setPinned(false);
   }
@@ -191,6 +193,7 @@ export default function Study({ chapter, initialState }: { chapter: Chapter; ini
     <a className="skip-link" href="#reading">Ir a la lectura</a>
     <header className="topbar"><div className="brand"><div className="brand-mark">u<span>·</span></div><span>understandly</span><span className="brand-tag">un poco más claro, cada día</span></div>
       <div className="header-actions"><Button variant="ghost" size="icon" onClick={event => openPanel('navigation', event.currentTarget)} className="mobile-menu" aria-label="Abrir recorrido"><Menu size={20} /></Button><Button variant="ghost" size="sm" onClick={() => setFocus(!focus)} aria-pressed={focus}><Focus size={17} /><span className="desktop-label">{focus ? 'Salir de lectura' : 'Modo lectura'}</span></Button><Button variant="ghost" size="icon" onClick={event => openPanel('settings', event.currentTarget)} aria-label="Ajustar lectura"><Settings2 size={19} /></Button><span className="header-divider" /><Button variant="outline" size="sm" onClick={event => openPanel('notebook', event.currentTarget)}><StickyNote size={16} /><span className="desktop-label">Mi cuaderno</span><span className="count">{state.notes.length}</span></Button><div className="avatar" aria-label="Espacio personal">M</div></div></header>
+    {readOnly && <div className="share-banner" role="status"><BookOpen size={17} /><p><strong>Vista compartida · Solo lectura</strong> Puedes recorrer el capítulo y ajustar la lectura. La tutoría, las notas y los intentos permanecen en el espacio personal.</p></div>}
     <div className="workspace"><aside className="sidebar">{nav}</aside>
       <main id="reading" className={`reading-column ${prefs.serif ? 'serif-reading' : ''}`}>
         <div className="breadcrumb"><BookOpen size={14} /> Docker desde cero <ChevronRight size={13} /><span>Capítulo 01</span></div>
@@ -199,8 +202,8 @@ export default function Study({ chapter, initialState }: { chapter: Chapter; ini
           <div className="chapter-status"><span className="approval-badge">{chapter.approved ? <Check size={14} /> : <FileText size={14} />}{chapter.approved ? 'Contenido revisado' : 'Revisión pendiente'}</span><span>Revisión {chapter.revision}</span><span>Sin comandos por ahora</span></div></div>
         <div className="reading-tip"><span className="tip-icon"><Sparkles size={18} /></span><p><strong>No te quedes con la duda.</strong> Selecciona cualquier fragmento para pedir una explicación o verlo de otra manera.</p><ArrowDown size={17} /></div>
         <article ref={article} className="chapter-article">{chapter.sections.map((section, index) => <section id={section.id} data-section={section.id} key={section.id}>
-          <div className="section-title"><span className="section-number">{String(index + 1).padStart(2, '0')}</span><h2>{section.title}</h2><button className="section-question" aria-label={`Preguntar sobre ${section.title}`} onClick={() => ask({ section: section.id, text: section.title })}><MessageCircle size={18} /></button></div>
-          {section.parts.map((part, i) => part.type === 'html' ? <div key={i} className="prose" dangerouslySetInnerHTML={{ __html: part.html! }} /> : part.type === 'diagram' ? <Diagram key={i} source={part.source!} onAsk={() => ask({ section: section.id, text: part.source! })} /> : <Exercise key={part.id} part={part} section={section.id} save={save} attempts={currentAttempts} assisted={assisted.includes(section.id)} />)}
+          <div className="section-title"><span className="section-number">{String(index + 1).padStart(2, '0')}</span><h2>{section.title}</h2><button disabled={readOnly} title={readOnly ? "Tutoría disponible solo en el espacio personal" : undefined} className="section-question" aria-label={`Preguntar sobre ${section.title}`} onClick={() => ask({ section: section.id, text: section.title })}><MessageCircle size={18} /></button></div>
+          {section.parts.map((part, i) => part.type === 'html' ? <div key={i} className="prose" dangerouslySetInnerHTML={{ __html: part.html! }} /> : part.type === 'diagram' ? <Diagram readOnly={readOnly} key={i} source={part.source!} onAsk={() => ask({ section: section.id, text: part.source! })} /> : <Exercise key={part.id} part={part} section={section.id} save={save} attempts={currentAttempts} assisted={assisted.includes(section.id)} readOnly={readOnly} />)}
         </section>)}</article>
         <div className="end-chapter"><Leaf size={24} /><h2>Una idea más clara.<br />Un paso más adelante.</h2><p>Has llegado al final de la lectura. Tus intentos y tus notas quedan guardados; el dominio y la retención todavía necesitan comprobarse.</p><span>{currentAttempts.length} intentos guardados · {state.notes.length} notas</span><Button variant="outline" onClick={() => go('comprobacion')}>Volver a la comprobación<ArrowRight size={16} /></Button></div>
         <footer className="reading-footer"><span>Understandly · Aprender sin prisa, entender de verdad.</span><a href="#reading" onClick={e => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>Volver al inicio ↑</a></footer>
@@ -208,7 +211,7 @@ export default function Study({ chapter, initialState }: { chapter: Chapter; ini
       <aside className="notebook-sidebar">{notes}</aside>
     </div>
     <div className="reading-location"><span>{String(currentIndex + 1).padStart(2, '0')} / {chapter.sections.length} · {chapter.sections[currentIndex]?.title}</span><div><button aria-label="Sección anterior" disabled={currentIndex <= 0} onClick={() => go(chapter.sections[currentIndex - 1].id)}><ArrowLeft size={15} /></button><button aria-label="Sección siguiente" disabled={currentIndex >= chapter.sections.length - 1} onClick={() => go(chapter.sections[currentIndex + 1].id)}><ArrowRight size={15} /></button></div></div>
-    {selection && !context && <div className="selection-toolbar" onMouseDown={event => event.preventDefault()} role="toolbar" aria-label="Acciones para el texto seleccionado"><Button size="sm" onClick={() => ask(selection)}><Sparkles size={16} />Preguntar sobre esto</Button><Button size="sm" variant="outline" onClick={() => ask(selection, 'reframe')}>No entiendo el enfoque</Button><Button size="icon" variant="ghost" aria-label="Descartar selección" onClick={() => setSelection(null)}><X size={16} /></Button></div>}
+    {selection && !context && !readOnly && <div className="selection-toolbar" onMouseDown={event => event.preventDefault()} role="toolbar" aria-label="Acciones para el texto seleccionado"><Button size="sm" onClick={() => ask(selection)}><Sparkles size={16} />Preguntar sobre esto</Button><Button size="sm" variant="outline" onClick={() => ask(selection, 'reframe')}>No entiendo el enfoque</Button><Button size="icon" variant="ghost" aria-label="Descartar selección" onClick={() => setSelection(null)}><X size={16} /></Button></div>}
     {notice && <div className="notice" role="status">{notice}<button aria-label="Cerrar aviso" onClick={() => setNotice('')}><X size={14} /></button></div>}
     <Dialog open={!!context} onOpenChange={open => { if (!open) closeTutor(); }}><DialogContent onCloseAutoFocus={event => { event.preventDefault(); dialogTrigger.current?.focus(); }}>
       <div className="dialog-eyebrow"><Sparkles size={17} /> Tutor contextual</div><DialogTitle>{mode === 'reframe' ? 'Vamos a verlo de otra manera.' : 'Hagamos espacio para la duda.'}</DialogTitle><DialogDescription>Una conversación sobre este fragmento. Puedes guardar la respuesta como nota.</DialogDescription>

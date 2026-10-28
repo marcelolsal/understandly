@@ -1,6 +1,20 @@
 import { defineMiddleware } from 'astro:middleware';
+import { isSharedPreview } from './server/access.mjs';
 
 export const onRequest = defineMiddleware(async ({ request, url }, next) => {
+  if (isSharedPreview()) {
+    if (!['GET', 'HEAD'].includes(request.method) || url.pathname !== '/')
+      return new Response(JSON.stringify({ error: 'Vista compartida de solo lectura. Los datos personales y la tutoría no están disponibles.' }), {
+        status: 403, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }
+      });
+    const response = await next();
+    response.headers.set('Cache-Control', 'no-store');
+    response.headers.set('X-Content-Type-Options', 'nosniff');
+    response.headers.set('Referrer-Policy', 'no-referrer');
+    response.headers.set('X-Frame-Options', 'DENY');
+    response.headers.set('X-Robots-Tag', 'noindex, nofollow');
+    return response;
+  }
   let host: string;
   try { host = new URL(`http://${request.headers.get('host')}`).hostname; }
   catch { return new Response('Host inválido.', { status: 403 }); }
