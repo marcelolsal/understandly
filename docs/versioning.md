@@ -30,7 +30,7 @@ Las aprobaciones de capítulos se vinculan a versiones de contenido, no al tag d
 - Ramas de trabajo hacia develop: PR con squash and merge.
 - develop hacia staging y staging hacia main: PR con merge commit.
 - Movimientos inversos entre ramas permanentes: merge commit mediante PR; la aplicación de esta excepción en GitHub está pendiente de resolver.
-- Las tres ramas permanentes deben impedir cambios directos, force push y borrado en GitHub. Las protecciones remotas todavía no están aplicadas.
+- Las tres ramas permanentes tienen PR obligatorio, sin bypass, force push ni borrado en GitHub. Rulesets verificados: 26008916 (develop, squash) y 26008917 (staging/main, merge). La excepción de movimientos inversos sigue pendiente.
 - El commit inicial es el punto común de arranque de las tres ramas locales.
 
 ## Pendiente

@@ -12,6 +12,7 @@ Esta documentación consolida las decisiones del usuario; no constituye una revi
 - [Especificación del producto](docs/product-spec.md)
 - [Versionado y releases](docs/versioning.md)
 - [Instrucciones compartidas para asistentes](AGENTS.md)
+- [Piloto Docker desde cero](docs/pilots/docker.md)
 
 ## Base acordada
 
@@ -22,6 +23,6 @@ Los datos enviados a una API se procesan fuera del equipo; almacenamiento local 
 
 ## Próximo paso
 
-Repositorio inicializado localmente con main, staging y develop desde un commit común. La conexión al remoto y las protecciones de GitHub quedan pendientes. No hay tags ni releases todavía.
+Repositorio conectado al remoto con main, staging y develop. Verificados dos rulesets activos: PR obligatorio, sin bypass, force push ni borrado; squash hacia develop y merge commit hacia staging/main. La excepción para sincronizaciones inversas hacia develop sigue pendiente. No hay tags ni releases todavía.
 
-Elegir un curso piloto y resolver los puntos abiertos de la especificación antes de implementar.
+Piloto elegido: Docker desde cero. Preparar y revisar el primer capítulo, y resolver los puntos abiertos antes de implementar.

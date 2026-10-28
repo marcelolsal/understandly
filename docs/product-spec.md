@@ -180,14 +180,14 @@ No exponer el servicio a internet como parte de esta fase.
 
 ## 13. Piloto propuesto
 
-Tema y materiales todavía por elegir.
+Tema elegido: Docker desde cero. Alcance y criterios iniciales en [Piloto Docker](pilots/docker.md). Material generado permanece fuera del repositorio.
 Recorrer: ingesta incompleta, alcance acordado, capítulo preparado, doble revisión, estudio, selección de texto e imagen, consulta, nota anclada, reformulación, actividad con feedback y reanudación del progreso.
 Comprobar comodidad en desktop y móvil y separación de recorrido, competencia y retención.
 No declarar exitoso el piloto antes de verificarlo con el usuario.
 
 ## 14. Decisiones abiertas
 
-- Tema, alcance y materiales del piloto.
+- Materiales adicionales, plataforma de prácticas y detalles operativos del piloto Docker.
 - Modelos concretos, límites de gasto, rondas de revisión y tratamiento de fallos.
 - Generación anticipada o progresiva y reglas de desbloqueo por curso.
 - Formatos admitidos, OCR y tratamiento de imágenes.
