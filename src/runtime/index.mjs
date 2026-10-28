@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import { performance } from 'node:perf_hooks';
 import { loadConfig, childEnvironment } from './config.mjs';
 import { runProcess, RuntimeError } from './process.mjs';
+import { providerFailure } from './diagnostics.mjs';
 
 function parseCodex(output) {
   const lines = output.trim().split('\n').filter(Boolean);
@@ -25,7 +26,7 @@ function parseCodex(output) {
 function parseClaude(output) {
   const result = JSON.parse(output);
   if (result.is_error || result.subtype !== 'success')
-    throw new RuntimeError('PROVIDER_ERROR', 'Claude no completó la consulta. Revisa token, cuota o conexión.');
+    throw providerFailure('claude', { stdout: output });
   if (typeof result.result !== 'string' || !result.result.trim()) throw new Error('empty');
   return { text: result.result, sessionId: result.session_id };
 }
@@ -53,7 +54,7 @@ export function createRuntime({ config, run = runProcess, env = process.env } = 
         const result = await run({ executable, args, input: prompt,
           env: childEnvironment(provider, config, env), cwd, signal, timeoutMs: config.timeoutMs });
         if (result.exitCode !== 0)
-          throw new RuntimeError('CLI_FAILED', `${provider} terminó con error. Comprueba autenticación, cuota y conectividad.`);
+          throw providerFailure(provider, result);
         let parsed;
         try { parsed = provider === 'codex' ? parseCodex(result.stdout) : parseClaude(result.stdout); }
         catch (error) {

@@ -6,6 +6,7 @@ import { join } from 'node:path';
 import { createRuntime, loadConfig } from '../src/runtime/index.mjs';
 import { childEnvironment } from '../src/runtime/config.mjs';
 import { runProcess } from '../src/runtime/process.mjs';
+import { claudeTokenFormat, providerFailure } from '../src/runtime/diagnostics.mjs';
 
 const config = { codexBin: 'codex', claudeBin: 'claude', claudeToken: 'test-secret-only', timeoutMs: 1000 };
 const codexSuccess = [
@@ -95,7 +96,7 @@ test('rejects incomplete output, provider errors, nonzero exits, without raw out
     ['codex', 0, '{broken', 'INVALID_RESPONSE'],
     ['codex', 0, '{"type":"item.completed","item":{"type":"agent_message","text":"partial"}}', 'INVALID_RESPONSE'],
     ['codex', 0, '{"type":"turn.failed","error":{"message":"secret"}}', 'PROVIDER_ERROR'],
-    ['claude', 0, '{"subtype":"error_during_execution","is_error":true,"result":"secret"}', 'PROVIDER_ERROR'],
+    ['claude', 0, '{"subtype":"error_during_execution","is_error":true,"result":"secret"}', 'CLI_FAILED'],
     ['claude', 1, 'secret', 'CLI_FAILED']
   ];
   for (const [provider, exitCode, stdout, code] of cases) {
@@ -132,4 +133,29 @@ test('process runner times out and accepts cancellation', async () => {
 test('missing executable reports an actionable error without raw paths', async () => {
   await assert.rejects(runProcess({ executable: '/nonexistent-private-cli', args: [] }),
     (error) => error.code === 'CLI_NOT_FOUND' && !error.message.includes('private-cli'));
+});
+
+test('diagnostics identify known errors without exposing credentials or source output', () => {
+  const cases = [
+    ['Invalid OAuth token sk-ant-oat-secret', 'AUTH_FAILED'],
+    ['API Error: 401 authentication_error secret', 'AUTH_FAILED'],
+    ['Hit your limit secret', 'USAGE_LIMIT'],
+    ["error: unknown option '--private-flag' secret", 'INVALID_CLI_OPTIONS'],
+    ['EACCES /private/secret', 'LOCAL_PERMISSION_ERROR'],
+    ['Unable to connect to API secret', 'NETWORK_ERROR'],
+    ['unclassified secret', 'CLI_FAILED']
+  ];
+  for (const [stderr, code] of cases) {
+    const error = providerFailure('claude', { stderr });
+    assert.equal(error.code, code);
+    assert.ok(!error.message.includes('secret'));
+    assert.ok(!error.message.includes('/private'));
+  }
+});
+
+test('token format is a hint, not a validation, and never exposes the token', () => {
+  assert.equal(claudeTokenFormat('sk-ant-oat-fake'), 'subscription_oauth');
+  assert.equal(claudeTokenFormat('sk-ant-api-fake'), 'api_key_not_subscription');
+  assert.equal(claudeTokenFormat('other-secret'), 'unrecognized');
+  assert.equal(claudeTokenFormat(), 'missing');
 });

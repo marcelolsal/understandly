@@ -37,12 +37,14 @@ Desde la raíz del repositorio:
 npm test
 npm run runtime:check
 npm run runtime:smoke
+npm run runtime:smoke -- claude
 printf '%s' 'Explica la diferencia entre imagen y contenedor.' | npm run runtime:ask -- codex
 printf '%s' 'Explica la diferencia entre imagen y contenedor.' | npm run runtime:ask -- claude
 ```
 
-check solo verifica ejecutables y presencia de configuración: NO valida la autenticación con el proveedor.
+check solo verifica ejecutables y presencia de configuración: NO valida la autenticación con el proveedor. Para Claude muestra tokenFormat: subscription_oauth, api_key_not_subscription, unrecognized o missing. Es una pista de formato, no prueba de validez. Para token de suscripción usar la salida completa de claude setup-token, no un código de autorización del navegador ni una API key.
 smoke envía una petición mínima real a cada proveedor, secuencialmente, y verifica una respuesta esperada. Consume uso del plan. Solo imprime éxito, duración o código de error, nunca las salidas crudas.
+Se puede indicar claude o codex para comprobar solo uno. Los fallos incluyen un mensaje fijo y seguro; no muestran stderr ni respuestas de error crudas.
 ask imprime la respuesta del modelo y termina con código distinto de cero al fallar. No usar prompts con secretos.
 
 Importación para el servidor futuro:
@@ -69,6 +71,7 @@ El consumidor debe crear su AbortController. La respuesta contiene provider, tex
 - Timeout, cancelación con AbortSignal y límite de salida combinada de 4 MiB.
 - En POSIX se termina el grupo de procesos; en Windows no se garantiza terminar todos los descendientes. Soporte inicial validado en macOS.
 - Errores normalizados: MISSING_TOKEN, CLI_NOT_FOUND, START_FAILED, TIMEOUT, CANCELLED, OUTPUT_LIMIT, CLI_FAILED, PROVIDER_ERROR, INVALID_RESPONSE, CONFIG_ERROR e INVALID_PROMPT.
+- Diagnósticos específicos cuando el CLI proporciona una señal reconocible: AUTH_FAILED, USAGE_LIMIT, INVALID_CLI_OPTIONS, LOCAL_PERMISSION_ERROR y NETWORK_ERROR. CLI_FAILED conserva los errores no identificados; no inferir que siempre significan credenciales incorrectas.
 - Errores no incorporan stdout, stderr, prompts ni entornos. El token de Claude se redacta si aparece literalmente en una respuesta.
 - No hay reintentos automáticos, cola global ni fallback facturable. Los errores generales no siempre distinguen cuota, conexión y autenticación: requieren diagnóstico con el CLI oficial.
 - Esto no es una frontera de aislamiento frente a todos los secretos del usuario. El CLI y el equipo deben ser confiables; los límites de herramientas y permisos requieren nueva revisión antes de servir peticiones de usuarios externos.
@@ -78,7 +81,7 @@ El consumidor debe crear su AbortController. La respuesta contiene provider, tex
 Las pruebas automatizadas usan respuestas simuladas para comprobar el contrato y procesos Node locales para comprobar timeout, cancelación, stdin y límites. No representan una revisión pedagógica ni aprobación de OpenAI/Anthropic.
 La comprobación real de conexión se realiza por separado mediante runtime:smoke; no guardar credenciales ni logs crudos en el repositorio.
 
-Resultado en el entorno restringido de desarrollo: 12 pruebas automatizadas correctas y ambos ejecutables detectados. La prueba real, limitada a 20 segundos por proveedor, falló: Codex terminó con código distinto de cero y un indicador de error de permisos; Claude alcanzó el timeout. No se confirmó una respuesta remota ni se validó la autenticación del token. Repetir runtime:smoke en una terminal del usuario con acceso normal a sus credenciales y a internet; no debilitar el sandbox para forzar el resultado.
+Resultado inicial en el entorno restringido de desarrollo: ambos ejecutables detectados; Codex terminó con un indicador de error de permisos y Claude alcanzó el timeout. Posteriormente el usuario confirmó un smoke correcto para Codex en su terminal (6378 ms); Claude terminó con CLI_FAILED. Se añadieron diagnósticos seguros y selección de un proveedor. Una comprobación local del token indicó formato no reconocido, sin probar que fuera inválido, y una petición adicional a Claude alcanzó el timeout de 15 segundos. La conexión de Claude sigue pendiente de validar desde la terminal del usuario. No debilitar el sandbox para forzar el resultado.
 
 ## Referencias oficiales
 
