@@ -10,6 +10,7 @@
     "runtime:smoke": "node scripts/runtime.mjs smoke",
     "runtime:ask": "node scripts/runtime.mjs ask",
     "review:chapter": "node scripts/review-chapter.mjs",
-    "review:docker": "node scripts/review-chapter.mjs --chapter ../work/understandly-data/courses/docker/chapters/01-modelo-mental.md --evidence ../work/understandly-data/courses/docker/source-evidence.json"
+    "review:docker": "node scripts/review-chapter.mjs --chapter ../work/understandly-data/courses/docker/chapters/01-modelo-mental.md --evidence ../work/understandly-data/courses/docker/source-evidence.json",
+    "review:docker:auto": "npm run review:docker -- --auto --human"
   }
 }

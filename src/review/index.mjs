@@ -3,13 +3,15 @@ import { readFile, writeFile, stat, realpath, mkdir, access, rename } from 'node
 import { dirname, join, resolve, parse } from 'node:path';
 import { REVIEW_SCHEMA, validateReview, decide } from './contract.mjs';
 import { RuntimeError } from '../runtime/process.mjs';
+import { validateReferences } from './references.mjs';
+import { renderReviewReport } from './report.mjs';
 
 export const sha256 = (text) => createHash('sha256').update(text).digest('hex');
-async function readBounded(path) {
+export async function readBounded(path) {
   if ((await stat(path)).size > 128 * 1024) throw new RuntimeError('INPUT_TOO_LARGE', 'Archivo de revisión demasiado grande.');
   return readFile(path, 'utf8');
 }
-async function outsideGit(path) {
+export async function outsideGit(path) {
   let directory = await realpath(path);
   if (!(await stat(directory)).isDirectory()) directory = dirname(directory);
   for (;;) {
@@ -23,7 +25,7 @@ async function outsideGit(path) {
     throw new RuntimeError('PRIVATE_DATA_IN_REPO', 'El capítulo, las evidencias y los dictámenes deben quedar fuera de un repositorio Git.');
   }
 }
-async function save(path, value, exclusive = false) {
+export async function save(path, value, exclusive = false) {
   const body = JSON.stringify(value, null, 2) + '\n';
   if (exclusive) return writeFile(path, body, { flag: 'wx', mode: 0o600 });
   const temp = `${path}.${randomUUID()}.tmp`;
@@ -44,6 +46,7 @@ export async function reviewChapter({ runtime, chapterPath, scopePath, evidenceP
     !s || typeof s.id !== 'string' || !s.id.trim() || typeof s.url !== 'string' || !s.url.startsWith('https://') ||
     typeof s.excerpt !== 'string' || !s.excerpt.trim()) || new Set(evidence.sources.map(s => s.id)).size !== evidence.sources.length)
     throw new RuntimeError('INVALID_EVIDENCE', 'Se necesitan fuentes identificadas, URL y extracto de evidencia.');
+  validateReferences(chapter, evidence);
   const contentSha256 = sha256(chapter), evidenceSha256 = sha256(evidenceText);
   const scopeSha256 = sha256(scope);
   const contract = { contentSha256, evidenceSha256, sourceIds: evidence.sources.map(s => s.id) };
@@ -92,7 +95,7 @@ export async function reviewChapter({ runtime, chapterPath, scopePath, evidenceP
     }
     await save(join(runDir, `${provider}.json`), record, true);
     onProgress({ provider, status: record.status, ...(record.code ? { code: record.code } : {}),
-      ...(record.review ? { verdict: record.review.verdict } : {}) });
+      ...(record.review ? { verdict: record.review.verdict, summary: record.review.summary, issues: record.review.issues } : {}) });
     return [provider, record];
   }));
   manifest.reviews = Object.fromEntries(records);
@@ -102,5 +105,6 @@ export async function reviewChapter({ runtime, chapterPath, scopePath, evidenceP
   }));
   Object.assign(manifest, decide(manifest.reviews, { stale: unchanged.includes(false) }), { finishedAt: new Date().toISOString() });
   await save(join(runDir, 'manifest.json'), manifest);
+  await writeFile(join(runDir, 'report.md'), renderReviewReport(manifest), { flag: 'wx', mode: 0o600 });
   return { runDir, manifest };
 }

@@ -6,8 +6,10 @@ import { join } from 'node:path';
 import { CRITERIA, validateReview } from '../src/review/contract.mjs';
 import { reviewChapter } from '../src/review/index.mjs';
 import { createRuntime } from '../src/runtime/index.mjs';
+import { validateReferences } from '../src/review/references.mjs';
 
 const evidence = { sources: [{ id: '1', url: 'https://example.org/source', excerpt: 'Fictional evidence for tests.' }] };
+const chapterFixture = '# Fictional chapter\n\nA claim. [1]\n\n## Sources\n1. https://example.org/source\n';
 function reviewFor(request) {
   const contentSha256 = request.prompt.match(/Huella del capítulo: ([a-f0-9]{64})/)[1];
   const evidenceSha256 = request.prompt.match(/Huella de evidencias: ([a-f0-9]{64})/)[1];
@@ -19,7 +21,7 @@ async function fixture(fn) {
   const dir = await mkdtemp(join(tmpdir(), 'understandly-review-test-'));
   try {
     const chapterPath = join(dir, 'chapter.md'), scopePath = join(dir, 'scope.md'), evidencePath = join(dir, 'sources.json');
-    await writeFile(chapterPath, '# Fictional chapter\n');
+    await writeFile(chapterPath, chapterFixture);
     await writeFile(scopePath, 'Fictional scope');
     await writeFile(evidencePath, JSON.stringify(evidence));
     await fn({ chapterPath, scopePath, evidencePath, outputDir: join(dir, 'reviews') });
@@ -39,8 +41,8 @@ test('independent reviews receive identical input, preserve snapshots and requir
     assert.deepEqual(calls.map(c => c.provider).sort(), ['claude', 'codex']);
     assert.equal(calls[0].prompt, calls[1].prompt);
     assert.deepEqual(calls[0].responseSchema, calls[1].responseSchema);
-    assert.equal((JSON.parse(await readFile(join(result.runDir, 'snapshot.json')))).chapter, '# Fictional chapter\n');
-    assert.equal(await readFile(options.chapterPath, 'utf8'), '# Fictional chapter\n');
+    assert.equal((JSON.parse(await readFile(join(result.runDir, 'snapshot.json')))).chapter, chapterFixture);
+    assert.equal(await readFile(options.chapterPath, 'utf8'), chapterFixture);
   });
 });
 
@@ -143,4 +145,22 @@ test('runtime forwards schemas and accepts Claude structured_output without resu
     const result = await runtime.ask({ provider, prompt: 'Test', responseSchema: schema });
     assert.deepEqual(JSON.parse(result.text), { ok: true });
   }
+});
+
+test('reference checks reject mismatches, missing sources, unknown citations and duplicates', () => {
+  assert.doesNotThrow(() => validateReferences(chapterFixture, evidence));
+  assert.throws(() => validateReferences(chapterFixture.replace('example.org/source', 'example.org/wrong'), evidence),
+    { code: 'SOURCE_REFERENCE_MISMATCH' });
+  assert.throws(() => validateReferences('# No reference', evidence), { code: 'SOURCE_REFERENCE_MISMATCH' });
+  assert.throws(() => validateReferences(chapterFixture + '\nClaim [9]', evidence), { code: 'UNKNOWN_CITATION' });
+  assert.throws(() => validateReferences(chapterFixture + '\n1. https://example.org/source', evidence),
+    { code: 'DUPLICATE_REFERENCE' });
+});
+
+test('a source mismatch consumes no model calls and creates no run artifacts', async () => {
+  await fixture(async options => {
+    await writeFile(options.chapterPath, chapterFixture.replace('example.org/source', 'example.org/wrong'));
+    await assert.rejects(reviewChapter({ ...options, runtime: { ask: () => assert.fail('must not invoke provider') } }),
+      { code: 'SOURCE_REFERENCE_MISMATCH' });
+  });
 });

@@ -73,7 +73,7 @@ El consumidor debe crear su AbortController. La respuesta contiene provider, tex
 - Errores normalizados: MISSING_TOKEN, CLI_NOT_FOUND, START_FAILED, TIMEOUT, CANCELLED, OUTPUT_LIMIT, CLI_FAILED, PROVIDER_ERROR, INVALID_RESPONSE, CONFIG_ERROR e INVALID_PROMPT.
 - Diagnósticos específicos cuando el CLI proporciona una señal reconocible: AUTH_FAILED, USAGE_LIMIT, INVALID_CLI_OPTIONS, LOCAL_PERMISSION_ERROR y NETWORK_ERROR. CLI_FAILED conserva los errores no identificados; no inferir que siempre significan credenciales incorrectas.
 - Errores no incorporan stdout, stderr, prompts ni entornos. El token de Claude se redacta si aparece literalmente en una respuesta.
-- No hay reintentos automáticos, cola global ni fallback facturable. Los errores generales no siempre distinguen cuota, conexión y autenticación: requieren diagnóstico con el CLI oficial.
+- El adaptador no reintenta errores ni introduce cola global o fallback facturable. El coordinador puede ejecutar ciclos editoriales acotados, documentados en chapter-review.md. Los errores generales no siempre distinguen cuota, conexión y autenticación: requieren diagnóstico con el CLI oficial.
 - Esto no es una frontera de aislamiento frente a todos los secretos del usuario. El CLI y el equipo deben ser confiables; los límites de herramientas y permisos requieren nueva revisión antes de servir peticiones de usuarios externos.
 
 ## Validación

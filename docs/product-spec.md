@@ -198,7 +198,7 @@ No declarar exitoso el piloto antes de verificarlo con el usuario.
 - Implementación e interoperabilidad efectiva con estándares.
 
 No declarar conformidad con CASE, Common Cartridge u otros estándares sin implementarla y verificarla.
-Autorizados runtime CLI, sus pruebas y coordinador de doble revisión. Interfaz Astro, servidor HTTP y demás funciones necesitan definición adicional; no ampliar silenciosamente el alcance.
+Autorizados runtime CLI, sus pruebas, doble revisión y ciclo automático de corrección acotado con informes antes/después. Interfaz Astro, servidor HTTP y demás funciones necesitan definición adicional; no ampliar silenciosamente el alcance.
 
 ## 15. Referencias
 
