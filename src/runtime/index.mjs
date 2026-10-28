@@ -1,4 +1,4 @@
-import { mkdtemp, rm } from 'node:fs/promises';
+import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { performance } from 'node:perf_hooks';
@@ -23,24 +23,29 @@ function parseCodex(output) {
   return { text, sessionId };
 }
 
-function parseClaude(output) {
+function parseClaude(output, structured = false) {
   const result = JSON.parse(output);
   if (result.is_error || result.subtype !== 'success')
     throw providerFailure('claude', { stdout: output });
-  if (typeof result.result !== 'string' || !result.result.trim()) throw new Error('empty');
-  return { text: result.result, sessionId: result.session_id };
+  const text = structured && result.structured_output && typeof result.structured_output === 'object'
+    ? JSON.stringify(result.structured_output) : result.result;
+  if (typeof text !== 'string' || !text.trim()) throw new Error('empty');
+  return { text, sessionId: result.session_id };
 }
 
 export function createRuntime({ config, run = runProcess, env = process.env } = {}) {
   if (!config) throw new RuntimeError('CONFIG_ERROR', 'Falta configuración del runtime.');
   return {
-    async ask({ provider, prompt, signal }) {
+    async ask({ provider, prompt, signal, responseSchema }) {
       if (!['codex', 'claude'].includes(provider))
         throw new RuntimeError('INVALID_PROVIDER', 'Proveedor no admitido.');
       if (typeof prompt !== 'string' || !prompt.trim() || Buffer.byteLength(prompt) > 256 * 1024)
         throw new RuntimeError('INVALID_PROMPT', 'El prompt debe contener entre 1 y 262144 bytes.');
       if (provider === 'claude' && !config.claudeToken)
         throw new RuntimeError('MISSING_TOKEN', 'Configura CLAUDE_CODE_OAUTH_TOKEN en .env.');
+      if (responseSchema !== undefined && (!responseSchema || typeof responseSchema !== 'object' ||
+          Array.isArray(responseSchema) || Buffer.byteLength(JSON.stringify(responseSchema)) > 32768))
+        throw new RuntimeError('INVALID_SCHEMA', 'El esquema de respuesta debe ser un objeto de hasta 32768 bytes.');
       const started = performance.now();
       // Separate trusted empty directory: no course/project hooks or instructions loaded by accident.
       const cwd = await mkdtemp(join(tmpdir(), 'understandly-runtime-'));
@@ -51,12 +56,19 @@ export function createRuntime({ config, run = runProcess, env = process.env } = 
           : ['-p', '--output-format', 'json', '--safe-mode', '--tools', '',
             '--strict-mcp-config', '--mcp-config', '{"mcpServers":{}}',
             '--no-session-persistence', '--permission-prompts', 'none'];
+        if (responseSchema) {
+          if (provider === 'codex') {
+            const schemaPath = join(cwd, 'response-schema.json');
+            await writeFile(schemaPath, JSON.stringify(responseSchema), { mode: 0o600 });
+            args.push('--output-schema', schemaPath);
+          } else args.push('--json-schema', JSON.stringify(responseSchema));
+        }
         const result = await run({ executable, args, input: prompt,
           env: childEnvironment(provider, config, env), cwd, signal, timeoutMs: config.timeoutMs });
         if (result.exitCode !== 0)
           throw providerFailure(provider, result);
         let parsed;
-        try { parsed = provider === 'codex' ? parseCodex(result.stdout) : parseClaude(result.stdout); }
+        try { parsed = provider === 'codex' ? parseCodex(result.stdout) : parseClaude(result.stdout, !!responseSchema); }
         catch (error) {
           if (error instanceof RuntimeError) throw error;
           throw new RuntimeError('INVALID_RESPONSE', 'El CLI devolvió una respuesta incompleta o incompatible.');

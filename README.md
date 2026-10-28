@@ -14,6 +14,7 @@ Esta documentación consolida las decisiones del usuario; no constituye una revi
 - [Instrucciones compartidas para asistentes](AGENTS.md)
 - [Piloto Docker desde cero](docs/pilots/docker.md)
 - [Runtime local: configuración, uso y límites](docs/cli-runtime.md)
+- [Doble revisión de capítulos](docs/chapter-review.md)
 
 ## Base acordada
 

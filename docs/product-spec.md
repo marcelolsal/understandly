@@ -1,6 +1,6 @@
 # Especificación de Understandly
 
-Estado: base conceptual acordada con el usuario y runtime CLI inicial autorizado. Interfaz, servidor y demás funciones siguen pendientes de implementación.
+Estado: base conceptual acordada, runtime CLI y coordinador de revisión de capítulos autorizados. Interfaz, servidor y demás funciones siguen pendientes de implementación.
 Las propuestas y decisiones pendientes se identifican por separado. Este documento es la referencia compartida entre asistentes.
 
 ## 1. Propósito
@@ -198,7 +198,7 @@ No declarar exitoso el piloto antes de verificarlo con el usuario.
 - Implementación e interoperabilidad efectiva con estándares.
 
 No declarar conformidad con CASE, Common Cartridge u otros estándares sin implementarla y verificarla.
-Autorizada la implementación inicial del runtime CLI y sus pruebas. Interfaz Astro, servidor HTTP y demás funciones necesitan definición adicional; no ampliar silenciosamente el alcance.
+Autorizados runtime CLI, sus pruebas y coordinador de doble revisión. Interfaz Astro, servidor HTTP y demás funciones necesitan definición adicional; no ampliar silenciosamente el alcance.
 
 ## 15. Referencias
 

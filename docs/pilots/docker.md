@@ -59,7 +59,7 @@ Los criterios de experiencia de estudio siguientes están pendientes. Existe un 
 Dos revisores reales, OpenAI y Anthropic, deben evaluar la misma versión y recursos asociados.
 Revisiones iniciales independientes; después resolver diferencias con fuentes.
 Autoría o consulta de documentación no cuenta como aprobación.
-Anthropic no ha revisado este capítulo y no existe todavía doble aprobación.
+Existe un [coordinador de revisión](../chapter-review.md). El primer intento desde el entorno del agente no obtuvo dictámenes válidos: el capítulo sigue pendiente de doble aprobación.
 Se configuró token de Claude para el runtime; no exponerlo. Selección de modelos y límites de uso pendientes.
 
 ## Fuentes oficiales de partida

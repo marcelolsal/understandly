@@ -1,6 +1,6 @@
 # Runtime local de CLI
 
-Primera implementación autorizada: adaptador de consultas puntuales y herramientas de diagnóstico. No incluye todavía servidor HTTP, interfaz Astro, streaming hacia la interfaz ni revisión de cursos.
+Implementación inicial: adaptador de consultas y diagnóstico, utilizado por el [coordinador de revisión](chapter-review.md). No incluye todavía servidor HTTP, interfaz Astro ni streaming hacia la interfaz.
 
 ## Requisitos
 
@@ -81,7 +81,7 @@ El consumidor debe crear su AbortController. La respuesta contiene provider, tex
 Las pruebas automatizadas usan respuestas simuladas para comprobar el contrato y procesos Node locales para comprobar timeout, cancelación, stdin y límites. No representan una revisión pedagógica ni aprobación de OpenAI/Anthropic.
 La comprobación real de conexión se realiza por separado mediante runtime:smoke; no guardar credenciales ni logs crudos en el repositorio.
 
-Resultado inicial en el entorno restringido de desarrollo: ambos ejecutables detectados; Codex terminó con un indicador de error de permisos y Claude alcanzó el timeout. Posteriormente el usuario confirmó un smoke correcto para Codex en su terminal (6378 ms); Claude terminó con CLI_FAILED. Se añadieron diagnósticos seguros y selección de un proveedor. Una comprobación local del token indicó formato no reconocido, sin probar que fuera inválido, y una petición adicional a Claude alcanzó el timeout de 15 segundos. La conexión de Claude sigue pendiente de validar desde la terminal del usuario. No debilitar el sandbox para forzar el resultado.
+El usuario confirmó ambos smoke correctos desde su terminal: Codex en 6378 ms y Claude en 2807 ms. En el entorno del agente persisten restricciones locales y timeouts; no debilitar el sandbox para forzar resultados. Los smoke solo verifican conexión, no aprobación de capítulos.
 
 ## Referencias oficiales
 
