@@ -1,6 +1,6 @@
 # Especificación de Understandly
 
-Estado: base conceptual acordada con el usuario. La implementación todavía no está autorizada.
+Estado: base conceptual acordada con el usuario y runtime CLI inicial autorizado. Interfaz, servidor y demás funciones siguen pendientes de implementación.
 Las propuestas y decisiones pendientes se identifican por separado. Este documento es la referencia compartida entre asistentes.
 
 ## 1. Propósito
@@ -163,8 +163,8 @@ Probar una lección con lectura larga, visuales, consulta y nota en desktop y m�
 
 Acordado:
 - Acceso inicial en red local; preparado para acceso remoto posterior.
-- Tutor integrado mediante API; soporte previsto para OpenAI y Anthropic.
-- Claves solo en servidor.
+- Tutor mediante adaptadores de CLI oficiales: Codex predeterminado y Claude Code con CLAUDE_CODE_OAUTH_TOKEN. Cambia el acuerdo inicial de API directa por motivos de costo.
+- Credenciales solo en procesos del servidor local; no enviarlas al navegador. Detalles en [Runtime CLI](cli-runtime.md).
 - Datos personales y académicos locales externos al repositorio.
 - Código y reglas compartidas en GitHub.
 - Exportación, respaldo y portabilidad.
@@ -198,7 +198,7 @@ No declarar exitoso el piloto antes de verificarlo con el usuario.
 - Implementación e interoperabilidad efectiva con estándares.
 
 No declarar conformidad con CASE, Common Cartridge u otros estándares sin implementarla y verificarla.
-No instalar dependencias ni desarrollar la aplicación hasta nueva instrucción del usuario.
+Autorizada la implementación inicial del runtime CLI y sus pruebas. Interfaz Astro, servidor HTTP y demás funciones necesitan definición adicional; no ampliar silenciosamente el alcance.
 
 ## 15. Referencias
 

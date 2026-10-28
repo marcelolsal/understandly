@@ -1,0 +1,13 @@
+{
+  "name": "understandly",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=22.16" },
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "runtime:check": "node scripts/runtime.mjs check",
+    "runtime:smoke": "node scripts/runtime.mjs smoke",
+    "runtime:ask": "node scripts/runtime.mjs ask"
+  }
+}

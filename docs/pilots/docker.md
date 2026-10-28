@@ -41,7 +41,7 @@ Revisar más adelante con otro escenario y sin mostrar la respuesta anterior; in
 
 ## Aceptación funcional de Understandly usando el piloto
 
-Todos los criterios siguientes están pendientes; no existe implementación.
+Los criterios de experiencia de estudio siguientes están pendientes. Existe un runtime CLI inicial independiente, descrito en [Runtime CLI](../cli-runtime.md), pero todavía no hay interfaz.
 
 - Conservar el acuerdo de alcance y su versión.
 - Bloquear estado aprobado/publicado si falta uno de los dos dictámenes de la misma versión.
@@ -59,8 +59,8 @@ Todos los criterios siguientes están pendientes; no existe implementación.
 Dos revisores reales, OpenAI y Anthropic, deben evaluar la misma versión y recursos asociados.
 Revisiones iniciales independientes; después resolver diferencias con fuentes.
 Autoría o consulta de documentación no cuenta como aprobación.
-No se ha contactado a Anthropic ni existe todavía doble aprobación.
-No exponer claves; modelos y presupuesto pendientes de configurar.
+Anthropic no ha revisado este capítulo y no existe todavía doble aprobación.
+Se configuró token de Claude para el runtime; no exponerlo. Selección de modelos y límites de uso pendientes.
 
 ## Fuentes oficiales de partida
 

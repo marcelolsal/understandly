@@ -5,7 +5,7 @@ La especificación identifica decisiones acordadas, propuestas y cuestiones abie
 
 ## Alcance actual
 
-Solo documentación y definición. No crear la aplicación, instalar dependencias ni publicar el servicio sin instrucción posterior del usuario.
+Autorizados: documentación y primera implementación del runtime local para Codex y Claude Code, con pruebas mínimas reales. No ampliar al servidor HTTP, interfaz o despliegue sin nueva instrucción. No instalar dependencias innecesarias.
 No convertir propuestas pendientes en decisiones confirmadas.
 Documentar cambios de alcance y sus motivos.
 
@@ -16,6 +16,7 @@ Materiales reales, cursos generados, conversaciones, dictámenes sobre cursos, p
 No subir secretos ni datos privados. Usar solo ejemplos ficticios o explícitamente autorizados.
 No imprimir claves ni contenidos sensibles.
 Las APIs procesan fuera del equipo el contexto enviado: minimizarlo.
+Codex usa su sesión predeterminada; Claude usa CLAUDE_CODE_OAUTH_TOKEN de .env. Nunca mostrar tokens ni introducir un fallback a API facturable. Consultar docs/cli-runtime.md.
 
 ## Colaboración
 
