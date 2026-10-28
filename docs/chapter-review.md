@@ -1,94 +1,71 @@
-# Doble revisión de capítulos
+# Autoría y revisión de capítulos
 
-Revisión de manuscritos mediante los CLI oficiales. No publica ni modifica capítulos, notas o progreso.
+Un proveedor redacta y corrige; otro revisa. Codex es autor y Claude revisor por defecto. Esta política sustituye la doble aprobación obligatoria; los registros históricos conservan su política original.
 
-## Piloto Docker
+## Uso
 
-Desde la raíz, con los materiales locales preparados:
+Desde la raíz del repositorio:
 
 ```bash
-npm run review:docker
+npm run review:docker -- --human
+npm run review:docker:auto
+npm run review:docker:auto -- --max-rounds 3
+npm run review:docker:auto -- --author claude --reviewer codex
 ```
 
-Usa capítulo y evidencias de ../work/understandly-data/courses/docker/, fuera del repositorio. Estos archivos privados no se distribuyen al clonar GitHub. El alcance está en docs/pilots/docker.md.
-Puede aumentarse UNDERSTANDLY_RUNTIME_TIMEOUT_MS en .env hasta 600000 para revisiones extensas. Consume uso de ambos planes y no reintenta ni cambia de cuenta.
+El comando sin auto consulta solo al revisor y no modifica el manuscrito. Auto parte de un manuscrito ya preparado, lo revisa y encarga al autor las correcciones necesarias. No genera automáticamente un curso desde cero.
+Si se especifica solo --author, el otro proveedor se asigna como revisor. Ambos deben ser distintos. Los roles se mantienen durante todo el ciclo; no hay rotación de cuentas ni fallback a API facturable.
 
 Para otros materiales:
 
 ```bash
-npm run review:chapter -- --chapter /ruta/capitulo.md --evidence /ruta/evidencias.json --scope /ruta/alcance.md
+npm run review:chapter -- --chapter /ruta/capitulo.md --evidence /ruta/evidencias.json --scope /ruta/alcance.md --auto --human
 ```
 
-El scope por defecto es Docker: especificarlo para otros cursos. --output selecciona un directorio privado para resultados.
-Evidencias: JSON con sources, lista no vacía de objetos con id numérico único (como string), url HTTPS y excerpt. Puede incluir título, fecha y procedencia. El manuscrito usa citas [1, 2] y referencias `1. https://...`. Antes de llamar a los modelos se exige correspondencia exacta entre identificadores y URL; duplicados y citas desconocidas se rechazan sin consumir uso.
-Los revisores contrastan los extractos proporcionados, no visitan URLs. En Docker se prepararon paráfrasis tras consultar documentación oficial. Si no bastan, deben solicitar más evidencia. No se descargan URLs automáticamente ni se ejecutan instrucciones del material.
+El scope por defecto es Docker; especificarlo para otros cursos. --output selecciona el directorio privado para resultados. Capítulo, evidencias y resultados deben estar fuera de Git, también mediante enlaces simbólicos o worktrees. Los materiales del piloto están en ../work/understandly-data/courses/docker/ y no se distribuyen al clonar el repositorio.
+Puede aumentarse UNDERSTANDLY_RUNTIME_TIMEOUT_MS en .env hasta 600000. Las consultas consumen uso de los planes.
 
 ## Proceso
 
-1. Congelar capítulo, alcance y evidencias; calcular SHA-256 de entradas, prompt y esquema.
-2. Enviar idéntico prompt y contrato a ambos modelos, sin compartir su primer dictamen.
-3. Validar estructura, siete criterios, chequeos de todas las fuentes y coherencia del veredicto.
-4. Guardar cada resultado por separado, incluso cuando falla el otro.
-5. Detectar cambios en las entradas durante la revisión e invalidar aprobación.
-6. Aprobar solo si ambos emiten approved, todos los criterios pass, todas las fuentes supported y no hay objeciones blocking.
+1. El autor prepara un manuscrito con alcance, fuentes y actividades acordados.
+2. Congelar capítulo, alcance y evidencias; registrar SHA-256 de entradas, prompt y esquema.
+3. El revisor evalúa siete criterios y todas las fuentes. Entrega un dictamen con cambios obligatorios y sugerencias opcionales.
+4. Si solicita cambios concretos y hay evidencia suficiente, el autor corrige. Debe explicar sección, antes/después, motivo e identificadores de observaciones atendidas.
+5. Verificar referencias, anclas y cobertura de objeciones obligatorias; archivar el original y aplicar atómicamente. Incrementar revision si existe en frontmatter.
+6. El revisor evalúa la nueva versión. Solo su dictamen válido sobre esa versión permite approved. Las sugerencias opcionales no generan correcciones tras una aprobación.
 
-El consenso no garantiza verdad ni eficacia pedagógica. Es aprobación del manuscrito con evidencia proporcionada, no de una interfaz renderizada ni de retención del estudiante.
+Se conserva la rúbrica: exactitud y fuentes, alcance, secuencia, explicaciones y visuales, práctica y feedback, evaluación, accesibilidad textual. Aprobar exige todos los criterios pass, todas las fuentes supported y cero objeciones blocking. No es aprobación de una interfaz renderizada ni prueba de aprendizaje.
 
-## Resultados
+Evidencias: JSON con sources, lista no vacía de objetos con id numérico único como string, url HTTPS y excerpt. El manuscrito usa citas [1, 2] y referencias `1. https://...`. Se comprueba correspondencia exacta de identificadores y URL antes de consultar al modelo.
+El revisor contrasta los extractos suministrados: no visita URLs. Ante una afirmación esencial sin respaldo, solicita evidencia. No se descargan fuentes automáticamente ni se ejecutan instrucciones incrustadas en materiales.
 
-Cada ejecución crea una carpeta nueva bajo reviews junto al curso, con permisos privados:
+## Límites y resultados
 
-- snapshot.json: entradas exactas.
-- codex.json y claude.json: dictamen validado o fallo normalizado.
-- manifest.json: huellas, estado, sesiones diagnósticas y resultados.
-- report.md: resumen en español, observaciones obligatorias, sugerencias y propuestas de cada revisor.
+Por defecto hay hasta 3 rondas, configurable entre 1 y 10. Con 3 rondas el máximo normal es 3 revisiones y 2 correcciones (antes eran 6 revisiones y 2 correcciones). La última ronda no aplica una corrección sin posterior revisión. Esto reduce llamadas, pero no garantiza que un capítulo requiera menos rondas.
+El ciclo se detiene ante aprobación, límite, evidencia insuficiente o contradictoria, fallos/cuotas, dictamen inválido, falta de progreso, cambios externos o cancelación con Ctrl+C. No reintenta errores de conexión ni busca un sí al azar.
 
-Se conserva historial, sin tokens ni errores crudos. Si el CLI no informa qué modelo usó, se registra cli-default-not-reported en lugar de inventarlo.
-Capítulo, evidencias y resultados se rechazan dentro de un repositorio Git, incluyendo worktrees y rutas resueltas mediante enlaces simbólicos.
+Cada revisión conserva snapshot.json, manifest.json, report.md y el dictamen del proveedor asignado. El manifiesto incluye reviewers y policy. Sin modelo informado por el CLI se registra cli-default-not-reported.
+Cada ciclo crea un directorio nuevo en auto-reviews con cycle.json (author, reviewer, policy), informe por ronda y copias antes/después. No guarda tokens ni errores crudos. Aprobaciones históricas no se reescriben.
+Los informes distinguen autoría de aprobación del revisor; nunca presentan esta política como doble aprobación. Una modificación de capítulo, alcance o evidencia invalida el dictamen para la nueva entrada.
 
 | Estado | Significado |
 | --- | --- |
-| running | Ejecución incompleta; no es aprobación. |
-| pending | Algún revisor falló o devolvió un dictamen inválido. |
-| changes_required | Ambos respondieron, pero alguno exige cambios. |
-| stale | Cambió una entrada durante el proceso. |
-| approved | Ambos aprobaron esa versión; publicación separada. |
+| approved | El revisor asignado aprobó la versión congelada; no publica. |
+| changes_required | El revisor solicita cambios. |
+| pending | Falta un dictamen válido. |
+| stale | Cambió alguna entrada. |
+| needs_evidence | Falta investigación; el autor no inventará evidencia. |
+| max_rounds | Se agotó el límite. |
+| no_progress | Se repite contenido o solo cambian metadatos. |
+| needs_clarification | Rechazo sin objeción bloqueante concreta. |
+| correction_failed | No se pudo obtener o verificar la corrección. |
+| cancelled | Se canceló el ciclo. |
+| running | Ejecución incompleta, sin aprobación. |
 
-Código de salida 0 solo para aprobación conjunta, 1 para otros resultados. Ante una terminación abrupta, un manifiesto running no aprueba nada.
-Después de observaciones se puede corregir manualmente o usar el ciclo automático descrito abajo. Nunca editar dictámenes para forzar consenso.
+Código de salida 0 solo para approved. Un lock por capítulo impide ciclos automáticos simultáneos; se libera al finalizar o cancelar normalmente. Tras una terminación abrupta puede quedar `<capitulo>.review-lock`: comprobar que no hay un ciclo activo antes de retirarlo manualmente.
+Los registros iniciales de borrador son históricos. Contrastar siempre huellas de manifest.json o cycle.json con las entradas actuales.
 
-## Corrección y nueva revisión automáticas
+## Compatibilidad y validación
 
-```bash
-npm run review:docker:auto
-npm run review:docker:auto -- --max-rounds 5
-```
-
-También disponible con `review:chapter -- --chapter ... --evidence ... --scope ... --auto --max-rounds 3`.
-
-Por defecto se realizan hasta 3 rondas de revisión, configurable entre 1 y 10. Cada ronda consulta a ambos revisores. Si ambos dan dictámenes válidos y alguno pide cambios concretos, Codex actúa como corrector: recibe las observaciones de ambos y propone un capítulo nuevo, con fragmentos antes/después, motivo y observaciones atendidas.
-El corrector no cambia las evidencias ni los veredictos. Se verifican los fragmentos declarados, cobertura de objeciones bloqueantes, referencias y conservación de anclas. Se archiva la versión anterior y se aplica la corrección de forma atómica. Si el frontmatter contiene revision numérica, se incrementa automáticamente.
-El comando auto muestra explicaciones en español en la terminal: resumen del dictamen, cambios obligatorios y sugerencias, propuestas y motivos de las correcciones. Para otros comandos puede activarse con --human. Sin esa opción se conservan los eventos JSON para integración futura.
-Después, ambos revisores vuelven a evaluar la nueva versión sin recibir el dictamen inicial del otro. Una aprobación anterior no se transfiere a un capítulo modificado. La última ronda no aplica una corrección que no alcance a ser revisada.
-
-El ciclo se detiene si:
-
-- Ambos aprueban la misma versión.
-- Se alcanza el máximo de rondas.
-- Falta evidencia o hay contradicciones que requieren investigación.
-- Un proveedor falla, alcanza su cuota o devuelve un dictamen inválido.
-- Se repite una versión, solo cambian metadatos o no hay una corrección verificable.
-- Cambian externamente capítulo, alcance o evidencias, o se cancela con Ctrl+C.
-
-Esto evita perseguir un sí por azar. No hay retries de errores de conexión ni rotación automática de cuentas. Con 3 rondas el máximo normal es 6 revisiones y 2 correcciones; se detiene antes si procede.
-
-Los resultados se conservan en auto-reviews junto al curso. cycle.json contiene el estado agregado y report.md explica por ronda qué pidió cada revisor, qué se cambió, el antes/después y por qué. Cada revisión también conserva sus propios artefactos; las propuestas aplicadas y copias anteriores están en la carpeta del ciclo.
-Los estados adicionales incluyen max_rounds, needs_evidence, no_progress, needs_clarification, correction_failed y cancelled. Solo approved implica doble aprobación, nunca publicación automática.
-
-Existe un lock de corrección por capítulo para evitar dos ciclos automáticos simultáneos. Se libera al terminar normalmente o cancelar. Si el proceso se mata abruptamente, puede quedar `<capitulo>.review-lock`; comprobar que no hay otro ciclo activo antes de retirarlo manualmente. Las ediciones externas no se sobrescriben si se detectan antes de aplicar la corrección.
-Los registros iniciales de borrador fuera de Git son históricos: el estado de cada ejecución se lee de manifest.json o cycle.json y se contrasta con las huellas del contenido actual antes de publicar.
-
-## Validación
-
-Las pruebas usan dictámenes ficticios en carpetas temporales para comprobar aprobación doble, desacuerdos, fallos parciales, respuestas incoherentes, versiones cambiadas, conservación de historial y privacidad.
-El usuario confirmó conexiones smoke correctas para ambos CLI. Eso no aprueba el capítulo. En el entorno restringido del agente, la primera revisión real quedó pending: Codex falló por permisos locales y Claude alcanzó un timeout de 20 segundos. Ejecutar desde la terminal del usuario y consultar los dictámenes.
+La función interna reviewChapter conserva como valor predeterminado la revisión doble para consumidores existentes; los comandos CLI y auto seleccionan explícitamente al único revisor asignado. Los informes antiguos sin policy se interpretan como dual_review.
+Las pruebas usan respuestas ficticias para comprobar roles, aprobación, correcciones, límites, fallos, versiones y privacidad. No equivalen a consultas reales ni a aprobación pedagógica.

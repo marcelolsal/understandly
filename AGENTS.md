@@ -5,7 +5,7 @@ La especificación identifica decisiones acordadas, propuestas y cuestiones abie
 
 ## Alcance actual
 
-Autorizados: documentación, runtime local para Codex y Claude Code, pruebas reales, doble revisión y corrección automática acotada de capítulos con informes claros. No ampliar al servidor HTTP, interfaz o despliegue sin nueva instrucción. No instalar dependencias innecesarias.
+Autorizados: documentación, runtime local para Codex y Claude Code, pruebas reales, autoría y revisión por proveedores distintos y corrección automática acotada de capítulos con informes claros. No ampliar al servidor HTTP, interfaz o despliegue sin nueva instrucción. No instalar dependencias innecesarias.
 No convertir propuestas pendientes en decisiones confirmadas.
 Documentar cambios de alcance y sus motivos.
 
@@ -23,9 +23,9 @@ Codex usa su sesión predeterminada; Claude usa CLAUDE_CODE_OAUTH_TOKEN de .env.
 OpenAI y Anthropic usan esta misma documentación como referencia.
 No asumir memoria compartida, acceso automático a archivos locales ni aprobación del otro modelo.
 Nunca atribuir revisión conjunta sin dos revisiones reales registradas.
-Seguir docs/chapter-review.md: aprobar solo la versión congelada con dos dictámenes válidos. Respuestas de prueba y smoke no son aprobación pedagógica.
+Seguir docs/chapter-review.md: aprobar solo la versión congelada con dictamen válido del revisor, distinto del autor. Codex autor y Claude revisor por defecto; roles invertibles. Respuestas de prueba y smoke no son aprobación pedagógica.
 No reintentar indefinidamente hasta obtener aprobación. Respetar límite de rondas, no inventar fuentes y conservar antes/después. Si falta evidencia, detener para investigarla; no relajar la rúbrica para forzar consenso.
-La regla de doble aprobación de capítulos y sus límites se describe en la especificación.
+La política de autor/revisor de capítulos y sus límites se describe en la especificación.
 Conservar notas, historial y progreso al modificar material.
 
 ## Validación y versiones

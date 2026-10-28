@@ -20,10 +20,10 @@ export function formatProgress(event) {
 
 export function renderReviewReport(manifest) {
   const lines = ['# Resultado de la revisión', '', `Estado: **${manifest.status}**.`,
-    `Aprobación conjunta: **${manifest.approved ? 'sí' : 'no'}**.`, '',
+    `Aprobación (${manifest.policy ?? 'dual_review'}): **${manifest.approved ? 'sí' : 'no'}**.`, '',
     `Versión del contenido: \`${manifest.contentSha256}\`.`, '',
     'Este informe evalúa el manuscrito y las evidencias proporcionadas; no demuestra aprendizaje del estudiante.', ''];
-  for (const provider of ['codex', 'claude']) {
+  for (const provider of manifest.reviewers ?? ['codex', 'claude']) {
     const record = manifest.reviews[provider];
     lines.push(`## ${provider === 'codex' ? 'Codex' : 'Claude'}`, '');
     if (record?.status !== 'completed') {
@@ -44,11 +44,12 @@ export function renderReviewReport(manifest) {
 
 export function renderCycleReport(cycle) {
   const lines = ['# Revisión y corrección automática', '', `Estado: **${cycle.status}**.`,
-    `Aprobado por ambos: **${cycle.approved ? 'sí' : 'no'}**.`, '', clean(cycle.reason ?? ''), '',
-    `Rondas utilizadas: ${cycle.rounds.length} de ${cycle.maxRounds}.`, ''];
+    `Aprobación (${cycle.policy ?? 'dual_review'}): **${cycle.approved ? 'sí' : 'no'}**.`, '', clean(cycle.reason ?? ''), '',
+    `Rondas utilizadas: ${cycle.rounds.length} de ${cycle.maxRounds}.`, '',
+    `Autor: ${clean(cycle.author)}. Revisor: ${clean(cycle.reviewer ?? 'ambos')}.`, ''];
   for (const round of cycle.rounds) {
     lines.push(`## Ronda ${round.number}`, '', `Resultado: **${round.status}**.`, '');
-    for (const provider of ['codex', 'claude']) {
+    for (const provider of Object.keys(round.reviews)) {
       const review = round.reviews[provider];
       lines.push(`**${provider}: ${review?.review?.verdict ?? review?.code ?? 'pendiente'}**`, '');
       if (review?.review) {

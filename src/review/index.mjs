@@ -34,7 +34,10 @@ export async function save(path, value, exclusive = false) {
 }
 
 export async function reviewChapter({ runtime, chapterPath, scopePath, evidencePath, outputDir,
-  signal, onProgress = () => {} }) {
+  signal, onProgress = () => {}, reviewers = ['codex', 'claude'] }) {
+  if (!Array.isArray(reviewers) || !reviewers.length || new Set(reviewers).size !== reviewers.length ||
+      reviewers.some(p => !['codex', 'claude'].includes(p)))
+    throw new RuntimeError('INVALID_ROLES', 'Selecciona revisores válidos sin duplicados.');
   // Input files are read exactly once for the prompt. Subsequent reads only detect edits.
   const paths = [chapterPath, scopePath, evidencePath].map(path => resolve(path));
   await outsideGit(paths[0]);
@@ -70,13 +73,14 @@ export async function reviewChapter({ runtime, chapterPath, scopePath, evidenceP
   const runId = `${new Date().toISOString().replace(/[:.]/g, '-')}-${randomUUID().slice(0, 8)}`;
   const runDir = join(output, runId);
   await mkdir(runDir, { mode: 0o700 });
-  const manifest = { runId, createdAt: new Date().toISOString(), reviewScope: 'manuscript_with_provided_evidence',
+  const manifest = { runId, createdAt: new Date().toISOString(), reviewScope: 'manuscript_with_provided_evidence', reviewers,
+    policy: reviewers.length === 1 ? 'author_reviewer' : 'dual_review',
     contentSha256, scopeSha256, evidenceSha256, promptSha256: sha256(prompt),
     schemaSha256: sha256(JSON.stringify(REVIEW_SCHEMA)), approved: false, status: 'running', reviews: {} };
   await save(join(runDir, 'snapshot.json'), { chapter, scope, evidenceText }, true);
   await save(join(runDir, 'manifest.json'), manifest, true);
   // Both calls receive identical frozen input, and neither receives the other's result.
-  const records = await Promise.all(['codex', 'claude'].map(async provider => {
+  const records = await Promise.all(reviewers.map(async provider => {
     onProgress({ provider, status: 'running' });
     let record;
     try {
@@ -103,7 +107,7 @@ export async function reviewChapter({ runtime, chapterPath, scopePath, evidenceP
     try { return sha256(await readBounded(path)) === [contentSha256, scopeSha256, evidenceSha256][i]; }
     catch { return false; }
   }));
-  Object.assign(manifest, decide(manifest.reviews, { stale: unchanged.includes(false) }), { finishedAt: new Date().toISOString() });
+  Object.assign(manifest, decide(manifest.reviews, { stale: unchanged.includes(false), reviewers }), { finishedAt: new Date().toISOString() });
   await save(join(runDir, 'manifest.json'), manifest);
   await writeFile(join(runDir, 'report.md'), renderReviewReport(manifest), { flag: 'wx', mode: 0o600 });
   return { runDir, manifest };

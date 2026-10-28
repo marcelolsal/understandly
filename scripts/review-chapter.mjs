@@ -15,17 +15,21 @@ try {
   for (let i = 0; i < args.length; i++) {
     if (args[i] === '--auto' && !automatic) { automatic = true; continue; }
     if (args[i] === '--human' && !human) { human = true; continue; }
-    if (!['--chapter', '--scope', '--evidence', '--output', '--max-rounds'].includes(args[i]) || !args[i + 1] || values[args[i]])
+    if (!['--chapter', '--scope', '--evidence', '--output', '--max-rounds', '--author', '--reviewer'].includes(args[i]) || !args[i + 1] || values[args[i]])
       throw Object.assign(new Error(), { code: 'USAGE' });
     const key = args[i];
     values[key] = args[++i];
   }
   if (!values['--chapter'] || !values['--evidence'] || (!automatic && values['--max-rounds']))
     throw Object.assign(new Error(), { code: 'USAGE' });
+  const author = values['--author'] ?? 'codex';
+  const reviewer = values['--reviewer'] ?? (author === 'codex' ? 'claude' : 'codex');
+  if (!['codex', 'claude'].includes(author) || !['codex', 'claude'].includes(reviewer) || author === reviewer)
+    throw Object.assign(new Error('Autor y revisor deben ser distintos: codex o claude.'), { code: 'INVALID_ROLES' });
   const options = { runtime: createRuntime({ config: await loadConfig() }),
     chapterPath: values['--chapter'], evidencePath: values['--evidence'],
     scopePath: values['--scope'] ?? resolve('docs/pilots/docker.md'), outputDir: values['--output'],
-    signal: controller.signal, onProgress: event => console.log(human ? formatProgress(event) : JSON.stringify(event)) };
+    author, reviewer, reviewers: [reviewer], signal: controller.signal, onProgress: event => console.log(human ? formatProgress(event) : JSON.stringify(event)) };
   const result = automatic ? await autoReviewChapter({ ...options, maxRounds: Number(values['--max-rounds'] ?? 3) })
     : await reviewChapter(options);
   const status = result.cycle ?? result.manifest;
@@ -36,7 +40,7 @@ try {
 } catch (error) {
   // Do not print arbitrary exception messages containing private file paths or content.
   const preparationCodes = new Set(['SOURCE_REFERENCE_MISMATCH', 'UNKNOWN_CITATION', 'DUPLICATE_REFERENCE',
-    'INVALID_EVIDENCE', 'PRIVATE_DATA_IN_REPO', 'INPUT_TOO_LARGE', 'INVALID_ROUNDS', 'REVIEW_LOCKED']);
+    'INVALID_ROLES', 'INVALID_EVIDENCE', 'PRIVATE_DATA_IN_REPO', 'INPUT_TOO_LARGE', 'INVALID_ROUNDS', 'REVIEW_LOCKED']);
   if (preparationCodes.has(error.code)) console.error(JSON.stringify({ code: error.code, message: error.message }));
   else console.error('No se pudo preparar o guardar la revisión. Usa --chapter <archivo> --evidence <json> [--scope <archivo>] [--output <directorio>]. Datos privados fuera de Git.');
   process.exitCode = 1;

@@ -24,11 +24,11 @@ function verdict(request, { approved = false, insufficient = false } = {}) {
   };
 }
 function correction(request) {
-  const { chapter } = parseData(request);
+  const { chapter, issues } = parseData(request);
   return { status: 'revised', chapter: chapter.replace('Vague explanation.', 'Precise explanation.'),
     explanation: 'The explanation now identifies the concrete concept.',
     changes: [{ section: 'demo', before: 'Vague explanation.', after: 'Precise explanation.',
-      reason: 'Both reviewers requested a concrete explanation.', addresses: ['codex:1', 'claude:1'] }] };
+      reason: 'Both reviewers requested a concrete explanation.', addresses: issues.filter(i => i.severity === 'blocking').map(i => i.id) }] };
 }
 async function fixture(fn) {
   const dir = await mkdtemp(join(tmpdir(), 'understandly-auto-test-'));
@@ -53,11 +53,11 @@ test('automatic review corrects once, re-reviews independently and records clear
     const result = await autoReviewChapter({ ...options, runtime });
     assert.equal(result.cycle.approved, true);
     assert.equal(result.cycle.rounds.length, 2);
-    assert.equal(writes, 1); assert.equal(reviews, 4);
+    assert.equal(writes, 1); assert.equal(reviews, 2);
     assert.match(await readFile(options.chapterPath, 'utf8'), /revision: 2/);
     assert.equal(await readFile(join(result.cycleDir, 'round-1-before.md'), 'utf8'), original);
     const report = await readFile(join(result.cycleDir, 'report.md'), 'utf8');
-    for (const text of ['Antes', 'Después', 'Por qué', 'codex:1', 'Vague explanation.', 'Precise explanation.'])
+    for (const text of ['Antes', 'Después', 'Por qué', 'claude:1', 'Vague explanation.', 'Precise explanation.'])
       assert.ok(report.includes(text));
     assert.ok(result.cycle.contentSha256);
   });
@@ -135,7 +135,7 @@ test('provider failures stop immediately; no retry loop or author is launched', 
     let calls = 0;
     const runtime = { ask: async () => { calls++; throw Object.assign(new Error('private'), { code: 'AUTH_FAILED' }); } };
     const { cycle } = await autoReviewChapter({ ...options, runtime });
-    assert.equal(calls, 2);
+    assert.equal(calls, 1);
     assert.equal(cycle.status, 'pending');
     assert.equal(cycle.rounds.length, 1);
   });
@@ -170,4 +170,50 @@ test('human progress explains reviewer requests and applied changes without term
   assert.match(output, /Obligatorio/);
   assert.match(output, /Distinguir ambas operaciones/);
   assert.ok(!output.includes('\u001b'));
+});
+
+test('roles can be reversed: only Codex reviews and only Claude corrects', async () => {
+  await fixture(async options => {
+    const calls = [];
+    const runtime = { ask: async request => {
+      calls.push({ provider: request.provider, correction: isCorrection(request) });
+      if (isCorrection(request)) return { text: JSON.stringify(correction(request)) };
+      return { text: JSON.stringify(verdict(request, { approved: parseData(request).chapter.includes('Precise explanation.') })) };
+    } };
+    const result = await autoReviewChapter({ ...options, runtime, author: 'claude', reviewer: 'codex' });
+    assert.deepEqual(calls, [
+      { provider: 'codex', correction: false },
+      { provider: 'claude', correction: true },
+      { provider: 'codex', correction: false }
+    ]);
+    assert.equal(result.cycle.approved, true);
+    assert.equal(result.cycle.policy, 'author_reviewer');
+    assert.equal(result.cycle.author, 'claude');
+    assert.equal(result.cycle.reviewer, 'codex');
+    assert.deepEqual(Object.keys(result.cycle.rounds[1].reviews), ['codex']);
+    const report = await readFile(join(result.cycleDir, 'report.md'), 'utf8');
+    assert.match(report, /Autor: claude. Revisor: codex/);
+    assert.ok(!report.includes('Aprobado por ambos'));
+  });
+});
+
+test('optional suggestions do not trigger an author call after reviewer approval', async () => {
+  await fixture(async options => {
+    let calls = 0;
+    const runtime = { ask: async request => {
+      calls++;
+      assert.equal(request.provider, 'claude');
+      const review = verdict(request, { approved: true });
+      review.issues = [{ severity: 'suggestion', section: 'demo', problem: 'Optional wording.', proposedChange: 'Optional clarification.' }];
+      return { text: JSON.stringify(review) };
+    } };
+    const { cycle } = await autoReviewChapter({ ...options, runtime });
+    assert.equal(cycle.approved, true);
+    assert.equal(calls, 1);
+    assert.equal(await readFile(options.chapterPath, 'utf8'), original);
+  });
+});
+
+test('the author cannot be assigned as their own reviewer', async () => {
+  await assert.rejects(autoReviewChapter({ author: 'codex', reviewer: 'codex' }), { code: 'INVALID_ROLES' });
 });

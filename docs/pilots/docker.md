@@ -44,7 +44,7 @@ Revisar más adelante con otro escenario y sin mostrar la respuesta anterior; in
 Los criterios de experiencia de estudio siguientes están pendientes. Existe un runtime CLI inicial independiente, descrito en [Runtime CLI](../cli-runtime.md), pero todavía no hay interfaz.
 
 - Conservar el acuerdo de alcance y su versión.
-- Bloquear estado aprobado/publicado si falta uno de los dos dictámenes de la misma versión.
+- Bloquear estado aprobado/publicado si falta el dictamen del revisor asignado sobre la misma versión.
 - Mostrar las secciones, un visual y su alternativa textual en desktop y móvil.
 - Seleccionar texto o un visual, preguntar y responder conservando contexto y posición.
 - Anclar respuesta, cerrar y volver a abrir sin perderla.
@@ -59,7 +59,7 @@ Los criterios de experiencia de estudio siguientes están pendientes. Existe un 
 Dos revisores reales, OpenAI y Anthropic, deben evaluar la misma versión y recursos asociados.
 Revisiones iniciales independientes; después resolver diferencias con fuentes.
 Autoría o consulta de documentación no cuenta como aprobación.
-Existe un [coordinador de revisión](../chapter-review.md). El primer intento desde el entorno del agente no obtuvo dictámenes válidos: el capítulo sigue pendiente de doble aprobación.
+Existe un [coordinador de revisión](../chapter-review.md). El primer intento desde el entorno del agente no obtuvo dictámenes válidos: ese intento quedó pendiente. Posteriormente la revisión 5 obtuvo doble aprobación histórica; el flujo vigente de autor/revisor se documenta en la especificación.
 Se configuró token de Claude para el runtime; no exponerlo. Selección de modelos y límites de uso pendientes.
 
 ## Fuentes oficiales de partida

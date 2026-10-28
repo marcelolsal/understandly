@@ -56,9 +56,9 @@ export function validateReview(value, { contentSha256, evidenceSha256, sourceIds
   return value;
 }
 
-export function decide(records, { stale = false } = {}) {
+export function decide(records, { stale = false, reviewers = ['codex', 'claude'] } = {}) {
   if (stale) return { status: 'stale', approved: false };
-  if (['codex', 'claude'].some(p => records[p]?.status !== 'completed')) return { status: 'pending', approved: false };
-  if (['codex', 'claude'].every(p => records[p].review.verdict === 'approved')) return { status: 'approved', approved: true };
+  if (reviewers.some(p => records[p]?.status !== 'completed')) return { status: 'pending', approved: false };
+  if (reviewers.every(p => records[p].review.verdict === 'approved')) return { status: 'approved', approved: true };
   return { status: 'changes_required', approved: false };
 }
