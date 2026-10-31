@@ -1,7 +1,7 @@
 # Especificación de Understandly
 
 Estado: base conceptual acordada, runtime CLI, coordinador de revisión y primera pantalla de estudio local implementados. Validación visual y experiencia real con el usuario pendientes.
-Las propuestas y decisiones pendientes se identifican por separado. Este documento es la referencia compartida entre asistentes.
+Las propuestas y decisiones pendientes se identifican por separado. Este documento es la referencia compartida entre asistentes. Estado operativo fechado: [continuidad](project-status.md). Motivos de acuerdos: [decisiones](decisions/README.md). Secuencia propuesta de trabajo: [hoja de ruta](roadmap.md).
 
 ## 1. Propósito
 
@@ -169,12 +169,12 @@ Acordado:
 - Lectura y actividades sin IA disponibles cuando la API falle, según recursos almacenados.
 
 Primera implementación autorizada: Astro SSR con adaptador Node, componentes React y patrones de shadcn/ui para controles, Markdown saneado y JSON local con escrituras serializadas y atómicas para notas e intentos. SQLite y MDX siguen pendientes, sin adoptarse por esta implementación.
-Definir directorio de datos configurable; evitar rutas absolutas del equipo.
+El directorio privado ya es configurable mediante UNDERSTANDLY_DATA_DIR; el lector sigue acoplado al curso y capítulo Docker. Evitar rutas absolutas del equipo en contratos y documentación pública.
 Almacenamiento local no significa procesamiento local: explicitar qué se envía a APIs.
 El repositorio público no concede a asistentes acceso a materiales privados.
 Antes de acceso externo, configurar autenticación, protección del transporte y acceso seguro.
 Si el servidor está en casa, requiere equipo encendido y conectividad para acceso remoto.
-No exponer el servicio a internet como parte de esta fase.
+No exponer el servicio personal completo a internet. La excepción autorizada para mostrar un capítulo es la vista compartida de solo lectura en un proceso separado, descrita en [Pantalla de estudio](study-reader.md).
 
 ## 13. Piloto propuesto
 

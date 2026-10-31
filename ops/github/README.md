@@ -1,6 +1,6 @@
 # Configuración inicial y limitaciones
 
-Los JSON se aplicaron en GitHub por el usuario. Se verificaron las tres ramas protegidas y dos rulesets activos mediante lecturas de la API: 26008916 para develop y 26008917 para staging/main, sin bypass configurado. La excepción indicada abajo permanece pendiente.
+Registro histórico: los JSON se aplicaron en GitHub por el usuario. No se volvió a verificar el remoto en la consolidación documental del 31 de octubre de 2026. Se verificaron las tres ramas protegidas y dos rulesets activos mediante lecturas de la API: 26008916 para develop y 26008917 para staging/main, sin bypass configurado. La excepción indicada abajo permanece pendiente.
 El repositorio está conectado al remoto. La terminal del agente mantiene problemas de conectividad; no confundirlos con un fallo confirmado de credenciales.
 
 ## Flujo principal solicitado

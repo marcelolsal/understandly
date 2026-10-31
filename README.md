@@ -9,12 +9,16 @@ Esta documentación consolida las decisiones del usuario; no constituye una revi
 
 ## Documentación
 
-- [Especificación del producto](docs/product-spec.md)
-- [Versionado y releases](docs/versioning.md)
-- [Instrucciones compartidas para asistentes](AGENTS.md)
-- [Piloto Docker desde cero](docs/pilots/docker.md)
-- [Runtime local: configuración, uso y límites](docs/cli-runtime.md)
-- [Autoría y revisión de capítulos](docs/chapter-review.md)
+Empieza por el [índice de documentación](docs/README.md) o por el [estado y guía de continuidad](docs/project-status.md), actualizado al 31 de octubre de 2026.
+
+- [Especificación y acuerdos del producto](docs/product-spec.md)
+- [Arquitectura y mapa del código](docs/architecture.md)
+- [Desarrollo, comandos y diagnóstico](docs/development.md)
+- [Datos, persistencia y API](docs/data-and-api.md)
+- [Hoja de ruta y criterios de cierre](docs/roadmap.md)
+- [Registro de decisiones](docs/decisions/README.md)
+- [Runtime CLI](docs/cli-runtime.md), [revisión editorial](docs/chapter-review.md) y [pantalla de estudio](docs/study-reader.md)
+- [Versionado y releases](docs/versioning.md), [AGENTS.md](AGENTS.md) y [piloto Docker](docs/pilots/docker.md)
 
 ## Base acordada
 
@@ -25,7 +29,7 @@ Los datos enviados a una API se procesan fuera del equipo; almacenamiento local 
 
 ## Próximo paso
 
-Repositorio conectado al remoto con main, staging y develop. Verificados dos rulesets activos: PR obligatorio, sin bypass, force push ni borrado; squash hacia develop y merge commit hacia staging/main. La excepción para sincronizaciones inversas hacia develop sigue pendiente. No hay tags ni releases todavía.
+Repositorio conectado al remoto con main, staging y develop. Dos rulesets se verificaron históricamente: PR obligatorio, sin bypass, force push ni borrado; squash hacia develop y merge commit hacia staging/main. La excepción para sincronizaciones inversas hacia develop sigue pendiente. No hay tags locales ni una release funcional verificada. El estado remoto debe comprobarse antes de integrar.
 
 Piloto elegido: Docker desde cero. Primer capítulo conectado a la pantalla de estudio; validar comodidad en desktop/móvil y tutoría real con el usuario. Consulta [Pantalla de estudio](docs/study-reader.md).
 

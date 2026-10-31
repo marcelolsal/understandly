@@ -1,6 +1,6 @@
 # Runtime local de CLI
 
-Implementación inicial: adaptador de consultas y diagnóstico, utilizado por el [coordinador de revisión](chapter-review.md). No incluye todavía servidor HTTP, interfaz Astro ni streaming hacia la interfaz.
+Adaptador de consultas y diagnóstico utilizado por el [coordinador de revisión](chapter-review.md) y por la [pantalla de estudio Astro](study-reader.md). El servidor HTTP y la interfaz están implementados; el streaming sigue pendiente. Estado consolidado: [continuidad](project-status.md).
 
 ## Requisitos
 
@@ -47,7 +47,7 @@ smoke envía una petición mínima real a cada proveedor, secuencialmente, y ver
 Se puede indicar claude o codex para comprobar solo uno. Los fallos incluyen un mensaje fijo y seguro; no muestran stderr ni respuestas de error crudas.
 ask imprime la respuesta del modelo y termina con código distinto de cero al fallar. No usar prompts con secretos.
 
-Importación para el servidor futuro:
+Contrato de importación usado por el servidor actual:
 
 ```js
 import { createRuntime, loadConfig } from '../src/runtime/index.mjs';

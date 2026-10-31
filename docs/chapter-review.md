@@ -80,3 +80,8 @@ Los registros iniciales de borrador son históricos. Contrastar siempre huellas 
 
 La función interna reviewChapter conserva como valor predeterminado la revisión doble para consumidores existentes; los comandos CLI y auto seleccionan explícitamente al único revisor asignado. Los informes antiguos sin policy se interpretan como dual_review.
 Las pruebas usan respuestas ficticias para comprobar roles, aprobación, correcciones, límites, fallos, versiones y privacidad. No equivalen a consultas reales ni a aprobación pedagógica.
+
+## Estado del piloto y continuidad
+
+La revisión 5 del capítulo Docker tiene aprobación verificable en el historial local; el estado vigente se resume en [project-status.md](project-status.md). docs/pilots/docker.md participa en la huella de alcance y contiene algunas notas históricas: no modificarlo solo para actualizar el avance de la aplicación.
+La función actual busca una aprobación coincidente en todo el historial; no implementa revocación por un rechazo posterior ni comparación del prompt actual con el prompt histórico como política de caché. Definir esas reglas antes de ampliar el ciclo a un sistema editorial general; no presentar el historial como garantía absoluta.

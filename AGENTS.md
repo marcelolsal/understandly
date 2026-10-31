@@ -1,7 +1,7 @@
 # Instrucciones compartidas para agentes
 
-Leer README.md, docs/product-spec.md y docs/versioning.md antes de trabajar.
-La especificación identifica decisiones acordadas, propuestas y cuestiones abiertas.
+Leer README.md, docs/project-status.md, docs/product-spec.md y docs/versioning.md antes de trabajar. docs/README.md contiene la ruta de lectura, contratos, arquitectura y pendientes. Comprobar el código y Git actual; el estado documentado es una instantánea fechada.
+La especificación identifica decisiones acordadas, propuestas y cuestiones abiertas. Consultar docs/decisions/README.md para el motivo de los acuerdos y docs/roadmap.md para los siguientes criterios de cierre.
 
 ## Alcance actual
 
@@ -26,7 +26,7 @@ Nunca atribuir revisión conjunta sin dos revisiones reales registradas.
 Seguir docs/chapter-review.md: aprobar solo la versión congelada con dictamen válido del revisor, distinto del autor. Codex autor y Claude revisor por defecto; roles invertibles. Respuestas de prueba y smoke no son aprobación pedagógica.
 No reintentar indefinidamente hasta obtener aprobación. Respetar límite de rondas, no inventar fuentes y conservar antes/después. Si falta evidencia, detener para investigarla; no relajar la rúbrica para forzar consenso.
 La política de autor/revisor de capítulos y sus límites se describe en la especificación.
-Conservar notas, historial y progreso al modificar material.
+Conservar notas, historial y progreso al modificar material. docs/pilots/docker.md forma parte de la huella del alcance aprobado: no actualizar sus notas operativas por limpieza documental; consultar docs/project-status.md para el estado actual.
 
 ## Validación y versiones
 
@@ -35,3 +35,7 @@ Para implementación futura, verificar flujos afectados y accesibilidad según e
 No declarar pruebas, revisiones o conformidad que no se hayan realizado.
 No crear tags de versión funcional hasta disponer de una versión verificable.
 No mover tags publicados. Seguir docs/versioning.md.
+
+## Continuidad documental
+
+Actualizar el estado, la guía del flujo afectado y los contratos cuando cambie el comportamiento. Registrar decisiones nuevas sin confundirlas con propuestas. No asumir que servidores, túneles, sesiones CLI o protecciones remotas sigan activos por haberlo estado antes. No iniciar otra revisión del capítulo aprobado solo para comprobar el estado; validar las huellas y usar los registros conservados.

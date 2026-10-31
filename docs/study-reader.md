@@ -69,7 +69,7 @@ La ocultación de soluciones es una ayuda para autoestudio: no es un sistema seg
 
 ## Tutor
 
-/api/tutor ejecuta exclusivamente el adaptador existente, con proveedor validado, sin shell, sin herramientas del modelo y con timeout. Solo permite una consulta simultánea en el servidor. No hay API facturable de respaldo ni reintentos automáticos.
+/api/tutor ejecuta exclusivamente el adaptador existente, con proveedor validado, sin shell y con timeout. El prompt indica no usar herramientas; Claude las desactiva mediante flags, mientras Codex conserva las capacidades de su CLI bajo sandbox read-only. Eso no constituye aislamiento completo de los archivos del servidor. Solo permite una consulta simultánea en el servidor. No hay API facturable de respaldo ni reintentos automáticos.
 Codex usa la sesión predeterminada. Claude usa CLAUDE_CODE_OAUTH_TOKEN en .env. Las credenciales permanecen en el servidor.
 Se envían al proveedor el fragmento seleccionado, la pregunta, hasta cuatro intercambios anteriores, la sección correspondiente sin bloques de soluciones y un índice de temas. El usuario elige el proveedor antes de preguntar. Al cerrar la consulta se aborta la petición; el proceso también queda limitado por timeout. Una consulta se registra como ayuda consultada en esa sesión, incluso si falla; no se presume independencia del desempeño.
 La lectura, los ejercicios y las notas no dependen de disponibilidad del proveedor. No se ha implementado funcionamiento sin conexión al servidor.
@@ -92,3 +92,7 @@ Las pruebas de UI usan un DOM simulado, no un navegador renderizado. Verifican g
 La compilación y las pruebas HTTP se ejecutaron localmente. La ejecución de Chromium/Edge automatizados fue bloqueada por los permisos de macOS (MachPortRendezvous). Quedan pendientes comprobación visual real en desktop/móvil, contraste renderizado, zoom/reflow y experiencia con lector de pantalla; no se declara conformidad WCAG.
 
 Antes de cerrar el piloto: comprobar contigo lectura prolongada, navegación por teclado, selección, consultas reales, guardado de notas, registro de intentos y reanudación en ambos dispositivos.
+
+## Continuar el desarrollo
+
+El estado fechado y el punto de reanudación están en [project-status.md](project-status.md). Consultar [architecture.md](architecture.md) para ubicar módulos, [data-and-api.md](data-and-api.md) para contratos y [roadmap.md](roadmap.md) para criterios de cierre. No asumir que el servidor o el forward de una sesión anterior sigan activos.
