@@ -1,7 +1,7 @@
-# Configuración inicial pendiente de aplicar
+# Configuración inicial y limitaciones
 
-Los JSON son propuestas preparadas, no reglas publicadas ni verificadas en GitHub.
-El usuario decidió inicializar el repositorio en local y posponer la conexión al remoto. No hay protecciones remotas aplicadas. Las comprobaciones anteriores de gh no fueron concluyentes por problemas de conectividad.
+Registro histórico: los JSON se aplicaron en GitHub por el usuario. No se volvió a verificar el remoto en la consolidación documental del 31 de octubre de 2026. Se verificaron las tres ramas protegidas y dos rulesets activos mediante lecturas de la API: 26008916 para develop y 26008917 para staging/main, sin bypass configurado. La excepción indicada abajo permanece pendiente.
+El repositorio está conectado al remoto. La terminal del agente mantiene problemas de conectividad; no confundirlos con un fallo confirmado de credenciales.
 
 ## Flujo principal solicitado
 
@@ -19,7 +19,7 @@ Los métodos de merge de estos rulesets se seleccionan por rama destino. El rule
 Si se requieren esas sincronizaciones inversas, acordar una política de merge controlado que compruebe origen y destino. No habilitar un bypass silencioso.
 Los rulesets tampoco restringen por sí solos la rama origen de una promoción.
 
-## Aplicación cuando exista acceso
+## Procedimiento para una instalación nueva
 
 1. Revisar de nuevo el estado remoto y no sobrescribir cambios ajenos.
 2. Publicar las ramas locales main, staging y develop con su historia común, si el remoto sigue vacío. Si ya tiene commits, revisar su integración antes de publicar.

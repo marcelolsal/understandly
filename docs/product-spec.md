@@ -1,7 +1,7 @@
 # Especificación de Understandly
 
-Estado: base conceptual acordada con el usuario. La implementación todavía no está autorizada.
-Las propuestas y decisiones pendientes se identifican por separado. Este documento es la referencia compartida entre asistentes.
+Estado: base conceptual acordada, runtime CLI, coordinador de revisión y primera pantalla de estudio local implementados. Validación visual y experiencia real con el usuario pendientes.
+Las propuestas y decisiones pendientes se identifican por separado. Este documento es la referencia compartida entre asistentes. Estado operativo fechado: [continuidad](project-status.md). Motivos de acuerdos: [decisiones](decisions/README.md). Secuencia propuesta de trabajo: [hoja de ruta](roadmap.md).
 
 ## 1. Propósito
 
@@ -78,27 +78,25 @@ Generación y desbloqueo son estados independientes.
 Un capítulo preparado puede estar bloqueado; uno planificado puede estar pendiente de generación.
 Las restricciones de avance dependen del acuerdo del curso y no se aplican universalmente.
 
-## 7. Revisión por dos proveedores
+## 7. Autor y revisor de distintos proveedores
 
-Requisito del usuario: OpenAI y Anthropic deben aprobar la misma versión antes de publicarla como capítulo aprobado.
-No simular un segundo revisor ni atribuir aprobaciones no realizadas.
-El acuerdo entre modelos no garantiza exactitud: exige fuentes y criterios.
+Acuerdo actualizado: un proveedor define y redacta; el otro revisa y solicita cambios. Sustituye la doble aprobación obligatoria para reducir llamadas y rondas.
+Codex es autor y Claude revisor por defecto; se pueden invertir. El autor no se revisa a sí mismo y no se atribuye aprobación conjunta.
 
 Flujo:
-1. Definición acordada con el usuario.
-2. Preparación con fuentes, explicaciones, visuales y actividades.
-3. Primera revisión independiente de ambos sin ver el dictamen del otro.
-4. Contraste de observaciones, corrección y resolución documentada de objeciones.
-5. Aprobación explícita de ambos sobre la versión final.
+1. Definición de alcance acordada con el usuario.
+2. El autor prepara el manuscrito con fuentes, explicaciones, visuales y actividades.
+3. El revisor evalúa la versión congelada y distingue objeciones obligatorias de sugerencias opcionales.
+4. El mismo autor corrige las objeciones, documentando antes/después y motivos.
+5. El mismo revisor comprueba la nueva versión y aprueba o solicita cambios concretos.
 
-Rúbrica: exactitud y fuentes; alcance; secuencia y prerrequisitos; explicaciones y visuales; práctica y feedback; evaluación adecuada a modalidad; presentación y accesibilidad.
-Registrar proveedor, modelo, versión o identificador disponible, contenido revisado, dictamen, motivos y correcciones.
-Los cambios sustanciales requieren nueva revisión de la parte afectada y sus dependencias.
-Un desacuerdo o indisponibilidad deja pendiente la aprobación, sin inventar consenso.
-Limitar rondas y costos; valores pendientes de definir.
-Distinguir desacuerdo sobre preferencias (usuario) de desacuerdo factual (evidencia).
-La doble revisión de cada respuesta del tutor en vivo NO está acordada: resolver latencia y costo primero.
-El feedback del estudiante puede reabrir contenido aprobado.
+La aprobación exige todos los criterios de la rúbrica satisfechos, evidencia suficiente y cero objeciones bloqueantes. Las sugerencias opcionales no abren otra ronda si ya está aprobado.
+La rúbrica conserva exactitud y fuentes, alcance, secuencia, explicaciones y visuales, práctica y feedback, evaluación y accesibilidad del manuscrito.
+Registrar roles, proveedor, modelo disponible, huellas de contenido, alcance y evidencias, dictamen y cambios. La autoría no cuenta como un segundo dictamen.
+Un cambio de contenido invalida el dictamen anterior para la nueva versión. Las aprobaciones dobles históricas permanecen intactas bajo su política original.
+Máximo predeterminado de 3 rondas, configurable entre 1 y 10; detener ante falta de evidencia, fallo, ausencia de progreso o cambios externos. Nunca forzar un sí ni inventar fuentes.
+Repetir el comando automático con las mismas entradas y roles reutiliza una aprobación validada del historial, sin nuevas consultas. Una revisión deliberada puede solicitarse con --force-review.
+La revisión no garantiza exactitud absoluta ni aprendizaje. La revisión doble del tutor en vivo no está acordada. El feedback del estudiante puede reabrir contenido aprobado.
 
 ## 8. Consultas contextuales
 
@@ -163,31 +161,31 @@ Probar una lección con lectura larga, visuales, consulta y nota en desktop y m�
 
 Acordado:
 - Acceso inicial en red local; preparado para acceso remoto posterior.
-- Tutor integrado mediante API; soporte previsto para OpenAI y Anthropic.
-- Claves solo en servidor.
+- Tutor mediante adaptadores de CLI oficiales: Codex predeterminado y Claude Code con CLAUDE_CODE_OAUTH_TOKEN. Cambia el acuerdo inicial de API directa por motivos de costo.
+- Credenciales solo en procesos del servidor local; no enviarlas al navegador. Detalles en [Runtime CLI](cli-runtime.md).
 - Datos personales y académicos locales externos al repositorio.
 - Código y reglas compartidas en GitHub.
 - Exportación, respaldo y portabilidad.
 - Lectura y actividades sin IA disponibles cuando la API falle, según recursos almacenados.
 
-Propuestas pendientes de validar: React para interacciones, Markdown/MDX con metadatos para contenido, SQLite para persistencia.
-Definir directorio de datos configurable; evitar rutas absolutas del equipo.
+Primera implementación autorizada: Astro SSR con adaptador Node, componentes React y patrones de shadcn/ui para controles, Markdown saneado y JSON local con escrituras serializadas y atómicas para notas e intentos. SQLite y MDX siguen pendientes, sin adoptarse por esta implementación.
+El directorio privado ya es configurable mediante UNDERSTANDLY_DATA_DIR; el lector sigue acoplado al curso y capítulo Docker. Evitar rutas absolutas del equipo en contratos y documentación pública.
 Almacenamiento local no significa procesamiento local: explicitar qué se envía a APIs.
 El repositorio público no concede a asistentes acceso a materiales privados.
 Antes de acceso externo, configurar autenticación, protección del transporte y acceso seguro.
 Si el servidor está en casa, requiere equipo encendido y conectividad para acceso remoto.
-No exponer el servicio a internet como parte de esta fase.
+No exponer el servicio personal completo a internet. La excepción autorizada para mostrar un capítulo es la vista compartida de solo lectura en un proceso separado, descrita en [Pantalla de estudio](study-reader.md).
 
 ## 13. Piloto propuesto
 
-Tema y materiales todavía por elegir.
-Recorrer: ingesta incompleta, alcance acordado, capítulo preparado, doble revisión, estudio, selección de texto e imagen, consulta, nota anclada, reformulación, actividad con feedback y reanudación del progreso.
+Tema elegido: Docker desde cero. Alcance y criterios iniciales en [Piloto Docker](pilots/docker.md). Material generado permanece fuera del repositorio.
+Recorrer: ingesta incompleta, alcance acordado, capítulo preparado, revisión por otro proveedor, estudio, selección de texto e imagen, consulta, nota anclada, reformulación, actividad con feedback y reanudación del progreso.
 Comprobar comodidad en desktop y móvil y separación de recorrido, competencia y retención.
 No declarar exitoso el piloto antes de verificarlo con el usuario.
 
 ## 14. Decisiones abiertas
 
-- Tema, alcance y materiales del piloto.
+- Materiales adicionales, plataforma de prácticas y detalles operativos del piloto Docker.
 - Modelos concretos, límites de gasto, rondas de revisión y tratamiento de fallos.
 - Generación anticipada o progresiva y reglas de desbloqueo por curso.
 - Formatos admitidos, OCR y tratamiento de imágenes.
@@ -198,7 +196,7 @@ No declarar exitoso el piloto antes de verificarlo con el usuario.
 - Implementación e interoperabilidad efectiva con estándares.
 
 No declarar conformidad con CASE, Common Cartridge u otros estándares sin implementarla y verificarla.
-No instalar dependencias ni desarrollar la aplicación hasta nueva instrucción del usuario.
+Autorizados runtime CLI, revisión por otro proveedor, ciclo automático acotado y primera experiencia Astro local: lectura adaptable, preguntas contextuales, notas, ejercicios y reanudación. El usuario autorizó mostrar la página mediante forward: se incorpora una vista de solo lectura en proceso separado, sin notas, intentos, progreso ni ejecución de CLI. No se autoriza desplegar públicamente el servicio personal completo. Detalles y límites en [Pantalla de estudio](study-reader.md).
 
 ## 15. Referencias
 
