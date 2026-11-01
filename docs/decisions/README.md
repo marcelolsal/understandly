@@ -91,3 +91,17 @@ Detalle: [versionado](../versioning.md) y [operaciones GitHub](../../ops/github/
 AGENTS.md y la documentación del repositorio deben bastar para continuar desde Codex o Claude sin suponer memoria compartida. El estado operativo se concentra en project-status.md; las decisiones vigentes se distinguen de propuestas y estados históricos.
 El archivo de alcance Docker está ligado a la aprobación por SHA-256 y conserva anotaciones antiguas. No se reescribe por motivos de limpieza documental. Se explica esa condición en el índice y se propone separar responsabilidades en una futura migración.
 Consecuencia: esta entrega no modifica el manuscrito, las evidencias, los dictámenes ni el alcance congelado y no inicia una nueva revisión académica.
+
+## D13 · Generación progresiva y desbloqueo secuencial
+
+**Estado:** acordado; implementación pendiente. **Etapa:** 31 de octubre de 2026.
+
+Se generan plan y capítulo 1; el siguiente al completar el anterior o al pedirlo. El desbloqueo es secuencial por defecto y ajustable a libre por curso.
+Consecuencia: generación y desbloqueo siguen siendo estados separados. Detalle: [diseño](../platform-design.md).
+
+## D14 · Repaso final en lugar de repaso espaciado
+
+**Estado:** acordado; implementación pendiente; sustituye a la idea de repasos por intervalos. **Etapa:** 31 de octubre de 2026.
+
+El uso será irregular, así que no hay calendario ni avisos. Cada capítulo cierra con explicaciones muy condensadas y preguntas puntuales que validan competencias.
+Consecuencia: la plataforma valida competencias al terminar, pero no mide retención a largo plazo y no debe afirmarla. Esto ajusta D01 y la sección 10 de la especificación.

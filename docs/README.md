@@ -12,6 +12,8 @@ Punto de entrada para entender el proyecto y continuarlo con Codex, Claude o cua
 | Saber qué hace cada módulo y dónde modificarlo | [Arquitectura](architecture.md) |
 | Trabajar con materiales, persistencia o endpoints | [Datos y API](data-and-api.md) |
 | Elegir el siguiente trabajo y saber cuándo está terminado | [Hoja de ruta](roadmap.md) |
+| Ver la plataforma compartida propuesta y sus criterios de evaluación | [Plan de plataforma](platform-plan.md) |
+| Ver cómo funcionará esa plataforma por dentro | [Diseño de la plataforma](platform-design.md) |
 | Entender por qué cambiamos de enfoque | [Registro de decisiones](decisions/README.md) |
 | Configurar los proveedores CLI | [Runtime CLI](cli-runtime.md) |
 | Preparar, revisar y cerrar un capítulo | [Autor y revisor](chapter-review.md) |
