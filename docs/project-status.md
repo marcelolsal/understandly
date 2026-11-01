@@ -8,6 +8,10 @@ Understandly tiene un primer recorrido de estudio local funcional en código, pa
 La revisión 5 del capítulo 1 está aprobada según el historial privado y las entradas actuales. El lector volvió a comprobar `approved: true`, 11 secciones y 6 bloques de actividad durante esta revisión del repositorio. No se hicieron consultas a modelos para comprobarlo ni se modificó el manuscrito.
 Todavía no se ha cerrado el piloto con el usuario: faltan la prueba visual real en desktop/móvil y una consulta real al tutor desde la pantalla. No hay release funcional publicada ni tags locales.
 
+## Actualización del 31 de octubre: fase 1
+
+En `feature/reader-improvements`, sin integrar: paneles colapsables por dispositivo, estado del capítulo con siguiente paso y cierre del tutor con resumen que el lector aprueba, edita o descarta. Pasan 47 pruebas unitarias, 5 de UI y 2 HTTP, además de tipos y build. El usuario confirmó el 31 de octubre en navegador real: paneles, modo lector, pregunta real al tutor, resumen editado y nota tras recargar. Móvil y accesibilidad siguen sin validar. Plan vigente: [plataforma](platform-plan.md) y [diseño](platform-design.md).
+
 ## Funciones disponibles
 
 | Área | Implementado | Límite actual |
@@ -16,7 +20,7 @@ Todavía no se ha cerrado el piloto con el usuario: faltan la prueba visual real
 | Comodidad | Papel/claro/noche, tamaño, ancho y serif opcional; preferencias por dispositivo | Diseño adaptable implementado, no validado visualmente con el usuario |
 | Tutor contextual | Selección de texto, botón de sección y consulta del diagrama como texto; diálogo con seguimiento | Respuesta completa al terminar, sin streaming ni análisis de imágenes arbitrarias |
 | Reformulación | Modo «No entiendo el enfoque» con otra explicación | No cambia ni versiona el manuscrito |
-| Cuaderno | Anclar última respuesta; conservar selección, sección y versión | No hay edición, borrado, búsqueda ni exportación desde la interfaz |
+| Cuaderno | Guardar resumen aprobado de la conversación; conservar selección, sección y versión | No hay edición, borrado, búsqueda ni exportación desde la interfaz |
 | Actividades | Guardar un intento antes de mostrar feedback; historial de intentos | No hay calificación automática ni certificación de competencias |
 | Reanudación | Última sección guardada en el servidor; notas e intentos disponibles al recargar | Sin sincronización en vivo, sin progreso porcentual ni medición de retención |
 | Runtime | Sesión predeterminada de Codex; token de suscripción de Claude; timeout y cancelación | Requiere conexión al proveedor; no ejecución local del modelo |

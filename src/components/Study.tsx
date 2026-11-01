@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type CSSProperties, type SubmitEvent } from 'react';
-import { ArrowDown, ArrowLeft, ArrowRight, BookOpen, Check, ChevronRight, CircleHelp, FileText, Focus, Leaf, LockKeyhole, Menu, MessageCircle, Pin, Settings2, Sparkles, StickyNote, X } from 'lucide-react';
+import { ArrowDown, ArrowLeft, ArrowRight, BookOpen, Check, ChevronRight, CircleHelp, FileText, Focus, Leaf, LockKeyhole, Menu, MessageCircle, PanelLeft, PanelRight, Pin, Settings2, Sparkles, StickyNote, X } from 'lucide-react';
 import { Button } from './ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from './ui/dialog';
 
@@ -8,7 +8,7 @@ type Section = { id: string; title: string; parts: Part[] };
 type Chapter = { id: string; title: string; revision: number; version: string; approved: boolean; readingMinutes: number; sections: Section[] };
 type Attempt = { id: string; exercise: string; section: string; version: string; answer: string; assisted: boolean; createdAt: string };
 type Note = { id: string; section: string; version: string; selection: string; question: string; answer: string; createdAt: string };
-type StudyState = { notes: Note[]; attempts: Attempt[]; position: { section: string; version: string } | null };
+type StudyState = { notes: Note[]; attempts: Attempt[]; position: { section: string; version: string } | null; visited?: { section: string; version: string }[] };
 type Selection = { section: string; text: string };
 type Preferences = { theme: string; size: number; width: string; serif: boolean };
 const defaults: Preferences = { theme: 'warm', size: 19, width: 'normal', serif: false };
@@ -83,7 +83,8 @@ export default function Study({ chapter, initialState, readOnly = false }: { cha
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
-  const [pinned, setPinned] = useState(false);
+  const [summary, setSummary] = useState<string | null>(null);
+  const [panels, setPanels] = useState({ left: true, right: true });
   const [assisted, setAssisted] = useState<string[]>([]);
   const controller = useRef<AbortController | null>(null);
   const restoring = useRef(true);
@@ -111,6 +112,8 @@ export default function Study({ chapter, initialState, readOnly = false }: { cha
       if (stored) setPrefs({ theme: ['warm', 'light', 'dark'].includes(stored.theme) ? stored.theme : 'warm',
         size: [17, 19, 21, 23].includes(stored.size) ? stored.size : 19,
         width: stored.width === 'wide' ? 'wide' : 'normal', serif: stored.serif === true });
+      const storedPanels = JSON.parse(localStorage.getItem('understandly-panels') ?? 'null');
+      if (storedPanels) setPanels({ left: storedPanels.left !== false, right: storedPanels.right !== false });
     } catch { /* Device preferences are optional. */ }
     setReady(true);
     const position = initialState.position;
@@ -122,8 +125,11 @@ export default function Study({ chapter, initialState, readOnly = false }: { cha
   }, []);
   useEffect(() => {
     document.documentElement.dataset.theme = prefs.theme;
-    if (ready) try { localStorage.setItem('understandly-reading', JSON.stringify(prefs)); } catch { /* Reading remains usable. */ }
-  }, [prefs, ready]);
+    if (ready) try {
+      localStorage.setItem('understandly-reading', JSON.stringify(prefs));
+      localStorage.setItem('understandly-panels', JSON.stringify(panels));
+    } catch { /* Reading remains usable. */ }
+  }, [prefs, panels, ready]);
   useEffect(() => {
     const observer = new IntersectionObserver(entries => {
       if (restoring.current) return;
@@ -136,7 +142,7 @@ export default function Study({ chapter, initialState, readOnly = false }: { cha
   useEffect(() => {
     if (readOnly || !ready || restoring.current) return;
     const timer = setTimeout(() => {
-      post('/api/study', { type: 'position', section: active, version: chapter.version }).catch(() => setNotice('No se pudo guardar la posición. Puedes seguir leyendo.'));
+      post('/api/study', { type: 'position', section: active, version: chapter.version }).then(setState).catch(() => setNotice('No se pudo guardar la posición. Puedes seguir leyendo.'));
     }, 900);
     return () => clearTimeout(timer);
   }, [active, ready]);
@@ -157,12 +163,12 @@ export default function Study({ chapter, initialState, readOnly = false }: { cha
   function ask(selected: Selection, selectedMode = 'explain') {
     if (readOnly) return;
     dialogTrigger.current = document.activeElement as HTMLElement;
-    setContext(selected); setHistory([]); setQuestion(''); setError(''); setMode(selectedMode); setPinned(false);
+    setContext(selected); setHistory([]); setQuestion(''); setError(''); setMode(selectedMode); setSummary(null);
   }
-  function closeTutor() { controller.current?.abort(); setContext(null); setBusy(false); }
+  function closeTutor() { controller.current?.abort(); setContext(null); setBusy(false); setSummary(null); }
   async function send(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault(); if (!context || busy) return;
-    setBusy(true); setError(''); setPinned(false);
+    setBusy(true); setError('');
     controller.current = new AbortController();
     setAssisted(value => [...new Set([...value, context.section])]);
     try {
@@ -171,11 +177,31 @@ export default function Study({ chapter, initialState, readOnly = false }: { cha
     } catch (error) { if ((error as Error).name !== 'AbortError') setError((error as Error).message); }
     finally { setBusy(false); }
   }
-  async function pin() {
-    if (!context || !history.length) return;
-    try { const last = history.at(-1)!; await save({ type: 'note', section: context.section, selection: context.text, ...last }); setPinned(true); setNotice('Respuesta guardada en tu cuaderno.'); }
+  async function summarize() {
+    if (!context || busy) return;
+    setBusy(true); setError('');
+    controller.current = new AbortController();
+    try {
+      const result = await post('/api/tutor', { ...context, selection: context.text, mode: 'summary', provider, history, version: chapter.version }, controller.current.signal);
+      setSummary(result.answer);
+    } catch (error) { if ((error as Error).name !== 'AbortError') setError((error as Error).message); }
+    finally { setBusy(false); }
+  }
+  async function saveSummary() {
+    if (!context || !summary?.trim()) return;
+    try { await save({ type: 'note', section: context.section, selection: context.text, question: history[0].question, answer: summary }); closeTutor(); setNotice('Resumen guardado en tu cuaderno.'); }
     catch (error) { setError((error as Error).message); }
   }
+  function discardSummary() { if (confirm('¿Descartar esta conversación? No se guardará nada.')) closeTutor(); }
+  function keepAsking() { setSummary(null); setTimeout(() => document.getElementById('question')?.focus()); }
+  const visited = new Set((state.visited ?? []).filter(v => v.version === chapter.version).map(v => v.section));
+  const attempted = new Set(currentAttempts.map(a => a.exercise));
+  const exerciseIds = (section: Section) => section.parts.filter(p => p.type === 'exercise').map(p => p.id!);
+  const totalExercises = chapter.sections.flatMap(exerciseIds).length;
+  const nextSection = chapter.sections.find(s => !visited.has(s.id) || exerciseIds(s).some(id => !attempted.has(id)));
+  const status = <div className="course-status" aria-label="Estado del capítulo"><span className="eyebrow">Tu estado</span>
+    <p>{visited.size} de {chapter.sections.length} secciones · {attempted.size} de {totalExercises} actividades</p>
+    {nextSection ? <button onClick={() => go(nextSection.id)}>Siguiente: {nextSection.title}<ArrowRight size={13} /></button> : <p><strong>Capítulo recorrido.</strong> Esto no certifica dominio.</p>}</div>;
   const notes = <><div className="notebook-heading"><span className="eyebrow">Tu cuaderno</span><span className="count">{state.notes.length}</span></div>
     <h3>Las ideas que te llevas.</h3><p className="muted small">Guarda una aclaración justo donde la necesitaste.</p>
     {!state.notes.length ? <div className="empty-notes"><StickyNote size={27} strokeWidth={1.3} /><p>Todo empieza con<br />una buena pregunta.</p><span>Selecciona un fragmento para conversar con tu tutor y anclar su respuesta aquí.</span></div> : state.notes.map(note => <button key={note.id} className="note-card" onClick={() => { if (note.version === chapter.version) go(note.section); setNotebook(false); }}>
@@ -184,7 +210,7 @@ export default function Study({ chapter, initialState, readOnly = false }: { cha
     <div className="learning-reminder"><Leaf size={18} /><p>Entender lleva su tiempo.<br /><strong>No necesitas acertar a la primera.</strong></p></div></>;
   const nav = <><div className="sidebar-course"><div className="course-icon"><BookOpen size={20} /></div><div><span className="eyebrow">Tu recorrido</span><h2>Docker desde cero</h2></div></div>
     <div className="course-label"><span>5 capítulos</span><span>Aprendizaje guiado</span></div>
-    <div className="chapter-current"><span className="chapter-number">01</span><div><strong>El modelo mental</strong><small>Estudiando ahora</small></div><span className="small-dot" /></div>
+    {!readOnly && status}<div className="chapter-current"><span className="chapter-number">01</span><div><strong>El modelo mental</strong><small>Estudiando ahora</small></div><span className="small-dot" /></div>
     <nav aria-label="Secciones del capítulo" className="section-nav">{chapter.sections.map((section, i) => <a key={section.id} href={`#${section.id}`} aria-current={active === section.id ? 'location' : undefined} className={active === section.id ? 'active' : ''} onClick={e => { e.preventDefault(); go(section.id); }}><span>{String(i + 1).padStart(2, '0')}</span>{section.title}</a>)}</nav>
     <div className="future-chapters">{['Observar estados', 'Crear imágenes', 'Persistencia de datos', 'Unir las piezas'].map((title, i) => <div key={title}><span>{String(i + 2).padStart(2, '0')}</span><p>{title}<small>Por preparar</small></p><LockKeyhole size={13} /></div>)}</div>
     <div className="sidebar-footer"><span className="local-dot" /> Espacio local · Tus datos contigo</div></>;
@@ -192,9 +218,9 @@ export default function Study({ chapter, initialState, readOnly = false }: { cha
   return <div className={`study-app ${focus ? 'focus-mode' : ''}`} style={{ '--reading-size': `${prefs.size}px`, '--reading-width': prefs.width === 'wide' ? '82ch' : '68ch' } as CSSProperties}>
     <a className="skip-link" href="#reading">Ir a la lectura</a>
     <header className="topbar"><div className="brand"><div className="brand-mark">u<span>·</span></div><span>understandly</span><span className="brand-tag">un poco más claro, cada día</span></div>
-      <div className="header-actions"><Button variant="ghost" size="icon" onClick={event => openPanel('navigation', event.currentTarget)} className="mobile-menu" aria-label="Abrir recorrido"><Menu size={20} /></Button><Button variant="ghost" size="sm" onClick={() => setFocus(!focus)} aria-pressed={focus}><Focus size={17} /><span className="desktop-label">{focus ? 'Salir de lectura' : 'Modo lectura'}</span></Button><Button variant="ghost" size="icon" onClick={event => openPanel('settings', event.currentTarget)} aria-label="Ajustar lectura"><Settings2 size={19} /></Button><span className="header-divider" /><Button variant="outline" size="sm" onClick={event => openPanel('notebook', event.currentTarget)}><StickyNote size={16} /><span className="desktop-label">Mi cuaderno</span><span className="count">{state.notes.length}</span></Button><div className="avatar" aria-label="Espacio personal">M</div></div></header>
+      <div className="header-actions"><Button variant="ghost" size="icon" onClick={event => openPanel('navigation', event.currentTarget)} className="mobile-menu" aria-label="Abrir recorrido"><Menu size={20} /></Button><Button variant="ghost" size="sm" onClick={() => setFocus(!focus)} aria-pressed={focus}><Focus size={17} /><span className="desktop-label">{focus ? 'Salir de lectura' : 'Modo lectura'}</span></Button><Button variant="ghost" size="icon" className="toggle-left" aria-label="Panel de recorrido" aria-expanded={panels.left} aria-controls="panel-left" onClick={() => setPanels(p => ({ ...p, left: !p.left }))}><PanelLeft size={19} /></Button><Button variant="ghost" size="icon" className="toggle-right" aria-label="Panel de cuaderno" aria-expanded={panels.right} aria-controls="panel-right" onClick={() => setPanels(p => ({ ...p, right: !p.right }))}><PanelRight size={19} /></Button><Button variant="ghost" size="icon" onClick={event => openPanel('settings', event.currentTarget)} aria-label="Ajustar lectura"><Settings2 size={19} /></Button><span className="header-divider" /><Button variant="outline" size="sm" onClick={event => openPanel('notebook', event.currentTarget)}><StickyNote size={16} /><span className="desktop-label">Mi cuaderno</span><span className="count">{state.notes.length}</span></Button><div className="avatar" aria-label="Espacio personal">M</div></div></header>
     {readOnly && <div className="share-banner" role="status"><BookOpen size={17} /><p><strong>Vista compartida · Solo lectura</strong> Puedes recorrer el capítulo y ajustar la lectura. La tutoría, las notas y los intentos permanecen en el espacio personal.</p></div>}
-    <div className="workspace"><aside className="sidebar">{nav}</aside>
+    <div className={`workspace ${panels.left ? '' : 'left-closed'} ${panels.right ? '' : 'right-closed'}`}><aside id="panel-left" className="sidebar">{nav}</aside>
       <main id="reading" className={`reading-column ${prefs.serif ? 'serif-reading' : ''}`}>
         <div className="breadcrumb"><BookOpen size={14} /> Docker desde cero <ChevronRight size={13} /><span>Capítulo 01</span></div>
         <div className="chapter-intro"><div className="intro-meta"><span className="pill">FUNDAMENTOS</span><span>{chapter.readingMinutes} min de lectura · a tu ritmo</span></div>
@@ -208,7 +234,7 @@ export default function Study({ chapter, initialState, readOnly = false }: { cha
         <div className="end-chapter"><Leaf size={24} /><h2>Una idea más clara.<br />Un paso más adelante.</h2><p>Has llegado al final de la lectura. Tus intentos y tus notas quedan guardados; el dominio y la retención todavía necesitan comprobarse.</p><span>{currentAttempts.length} intentos guardados · {state.notes.length} notas</span><Button variant="outline" onClick={() => go('comprobacion')}>Volver a la comprobación<ArrowRight size={16} /></Button></div>
         <footer className="reading-footer"><span>Understandly · Aprender sin prisa, entender de verdad.</span><a href="#reading" onClick={e => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>Volver al inicio ↑</a></footer>
       </main>
-      <aside className="notebook-sidebar">{notes}</aside>
+      <aside id="panel-right" className="notebook-sidebar">{notes}</aside>
     </div>
     <div className="reading-location"><span>{String(currentIndex + 1).padStart(2, '0')} / {chapter.sections.length} · {chapter.sections[currentIndex]?.title}</span><div><button aria-label="Sección anterior" disabled={currentIndex <= 0} onClick={() => go(chapter.sections[currentIndex - 1].id)}><ArrowLeft size={15} /></button><button aria-label="Sección siguiente" disabled={currentIndex >= chapter.sections.length - 1} onClick={() => go(chapter.sections[currentIndex + 1].id)}><ArrowRight size={15} /></button></div></div>
     {selection && !context && !readOnly && <div className="selection-toolbar" onMouseDown={event => event.preventDefault()} role="toolbar" aria-label="Acciones para el texto seleccionado"><Button size="sm" onClick={() => ask(selection)}><Sparkles size={16} />Preguntar sobre esto</Button><Button size="sm" variant="outline" onClick={() => ask(selection, 'reframe')}>No entiendo el enfoque</Button><Button size="icon" variant="ghost" aria-label="Descartar selección" onClick={() => setSelection(null)}><X size={16} /></Button></div>}
@@ -219,8 +245,9 @@ export default function Study({ chapter, initialState, readOnly = false }: { cha
       <div className="tutor-controls"><label>Proveedor<select value={provider} onChange={e => setProvider(e.target.value)} disabled={busy}><option value="codex">Codex</option><option value="claude">Claude</option></select></label><label>Lo que necesito<select value={mode} onChange={e => setMode(e.target.value)} disabled={busy}><option value="explain">Resolver una duda</option><option value="reframe">Otra forma de explicarlo</option></select></label></div>
       <div className="conversation" aria-live="polite">{history.map((item, i) => <div key={i}><p className="conversation-question">{item.question}</p><p className="conversation-answer">{item.answer}</p></div>)}{busy && <p className="thinking"><span className="pulse-dot" /> El tutor está preparando una respuesta…</p>}</div>
       {error && <p className="error" role="alert">{error}</p>}
-      <form onSubmit={send}><label className="sr-only" htmlFor="question">Tu pregunta</label><textarea id="question" value={question} onChange={e => setQuestion(e.target.value)} placeholder={history.length ? '¿Y si…? Continúa la conversación.' : '¿Qué parte no está clara?'} required maxLength={2000} rows={3} disabled={busy} /><div className="dialog-actions"><span className="small muted">Se envían este contexto y tu pregunta al proveedor elegido.</span><Button disabled={busy || !question.trim()}>{busy ? 'Consultando…' : 'Preguntar'}<ArrowRight size={15} /></Button></div></form>
-      {history.length > 0 && <Button variant="outline" onClick={pin} disabled={pinned}><Pin size={15} />{pinned ? 'Guardado en tu cuaderno' : 'Anclar última respuesta'}</Button>}
+      {summary !== null ? <div className="tutor-summary"><label htmlFor="summary">Resumen de lo que quedó claro. Puedes editarlo.</label><textarea id="summary" value={summary} onChange={e => setSummary(e.target.value)} maxLength={16000} rows={6} /><div className="exercise-actions"><Button onClick={saveSummary} disabled={!summary.trim()}><Pin size={15} />Guardar como nota</Button><Button variant="outline" onClick={keepAsking}>Seguir preguntando</Button><Button variant="ghost" onClick={discardSummary}>Descartar</Button></div></div> : <>
+      {history.length > 0 && !busy && <div className="tutor-close"><span>¿Esto responde tu pregunta?</span><Button size="sm" onClick={summarize}><Check size={15} />Sí, resumir</Button><Button size="sm" variant="outline" onClick={keepAsking}>Seguir preguntando</Button></div>}
+      <form onSubmit={send}><label className="sr-only" htmlFor="question">Tu pregunta</label><textarea id="question" value={question} onChange={e => setQuestion(e.target.value)} placeholder={history.length ? '¿Y si…? Continúa la conversación.' : '¿Qué parte no está clara?'} required maxLength={2000} rows={3} disabled={busy} /><div className="dialog-actions"><span className="small muted">Se envían este contexto y tu pregunta al proveedor elegido.</span><Button disabled={busy || !question.trim()}>{busy ? 'Consultando…' : 'Preguntar'}<ArrowRight size={15} /></Button></div></form></>}
     </DialogContent></Dialog>
     <Dialog open={settings} onOpenChange={setSettings}><DialogContent className="settings-dialog" onCloseAutoFocus={restorePanelFocus}><div className="dialog-eyebrow"><Settings2 size={17} /> A tu manera</div><DialogTitle>Haz cómoda la lectura.</DialogTitle><DialogDescription>Estos ajustes se guardan en este dispositivo.</DialogDescription>
       <fieldset><legend>Ambiente</legend><div className="theme-options">{[['light', 'Claro'], ['warm', 'Papel'], ['dark', 'Noche']].map(([value, label]) => <button key={value} className={`theme-option theme-${value}`} aria-pressed={prefs.theme === value} onClick={() => setPrefs(p => ({ ...p, theme: value }))}><span>Aa</span>{label}{prefs.theme === value && <Check size={14} />}</button>)}</div></fieldset>

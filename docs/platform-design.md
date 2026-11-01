@@ -81,7 +81,7 @@ La conversación sigue viva. Desde ella se puede pedir otro curso, un satélite 
 
 **Generación progresiva (acordado):** se genera plan y capítulo 1. El siguiente se encola al completar el anterior o al pedirlo. Evita gastar cuota en capítulos que quizá no se lean.
 
-**Desbloqueo (acordado):** secuencial por defecto, ajustable a libre en cada curso. «Generado» y «desbloqueado» son estados separados, como dice la especificación. Propuesta por confirmar: un capítulo se completa al recorrer sus secciones y guardar un intento en cada actividad obligatoria; acertar no es requisito.
+**Desbloqueo (acordado):** secuencial por defecto, ajustable a libre en cada curso. «Generado» y «desbloqueado» son estados separados, como dice la especificación. Un capítulo se completa al recorrer sus secciones y guardar un intento en cada actividad obligatoria; acertar no es requisito.
 
 ## Fuentes: hueco detectado
 
@@ -139,7 +139,7 @@ No hay porcentaje de dominio global. Las modalidades sin evaluación muestran so
 
 - `evaluate_attempt` compara una respuesta abierta con los criterios y **propone** feedback; el estudiante puede cuestionarlo. Solo una evidencia sin ayuda cuenta como independiente.
 - **Repaso final (acordado):** cierra cada capítulo con una explicación muy condensada por competencia, seguida de preguntas puntuales que la validan. Forma parte del manuscrito y se revisa con él. Sin calendario, avisos ni repasos pendientes: no depende de la frecuencia de uso.
-- Propuesta por confirmar: fallar una pregunta del repaso muestra la explicación y permite reintentar; no impide desbloquear el siguiente capítulo, pero la competencia queda sin validar.
+- **Fallo en el repaso (acordado):** se muestra la explicación y se reintenta lo errado con una pregunta distinta sobre el mismo concepto. Cada pregunta trae al menos dos variantes en el manuscrito, revisadas con él, para funcionar con la Mac apagada; agotadas, un trabajo de IA crea otra. Propuesta: no impide desbloquear el siguiente capítulo; la competencia queda sin validar hasta acertar.
 
 ## Ingesta
 

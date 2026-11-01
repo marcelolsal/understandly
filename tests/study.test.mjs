@@ -67,6 +67,22 @@ test('contextual tutor sends only selected section, omits solution blocks, and u
   assert.throws(() => tutorPrompt({ ...input, provider: 'shell' }, chapter), { status: 400 });
 });
 
+test('position records visited sections once per version, including in older state files', () => {
+  const state = { schema: 1, notes: [], attempts: [], position: null };
+  const position = { type: 'position', version: chapter.version, section: 'concept' };
+  applyAction(state, position, chapter);
+  applyAction(state, position, chapter);
+  assert.deepEqual(state.visited, [{ section: 'concept', version: chapter.version }]);
+});
+
+test('tutor summary needs a conversation and is limited to what was discussed', () => {
+  const input = { provider: 'claude', mode: 'summary', version: chapter.version, section: 'concept', selection: 'A useful concept.' };
+  assert.throws(() => tutorPrompt(input, chapter), { status: 400 });
+  const prompt = tutorPrompt({ ...input, history: [{ question: 'Why?', answer: 'Because.' }] }, chapter);
+  assert.match(prompt, /No añadas ideas nuevas/);
+  assert.ok(!prompt.includes('Secret solution.'));
+});
+
 test('JSON endpoints reject foreign origins, oversized bodies and malformed data', async () => {
   const request = (body, origin = 'http://localhost:4321') => new Request('http://localhost:4321/api/study', {
     method: 'POST', headers: { Origin: origin, 'Content-Type': 'application/json' }, body

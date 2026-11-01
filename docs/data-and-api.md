@@ -82,9 +82,12 @@ Los revisores no navegan automáticamente esas URLs. Si una afirmación esencial
   "schema": 1,
   "notes": [],
   "attempts": [],
-  "position": null
+  "position": null,
+  "visited": []
 }
 ```
+
+`visited` es opcional en archivos anteriores y lista `{section, version}` por sección recorrida. No mide dominio.
 
 | Entidad | Campos guardados |
 | --- | --- |
@@ -143,12 +146,12 @@ El ejemplo requiere reemplazar ids y huella por los de un capítulo real. No hay
 ```
 
 - `provider`: `codex` o `claude`.
-- `mode`: `explain` para duda puntual, `reframe` para una explicación alternativa.
+- `mode`: `explain` para duda puntual, `reframe` para una explicación alternativa, `summary` para resumir `history`, que entonces es obligatorio; `question` se ignora.
 - `selection`: texto no vacío, máximo 3000 caracteres. El diagrama se consulta como estructura textual.
 - `question`: texto no vacío, máximo 2000 caracteres.
 - `history`: opcional; el servidor toma como máximo los cuatro últimos intercambios. Cada uno se limita a 2000 caracteres de pregunta y 6000 de respuesta.
 
-El servidor verifica sección y versión, omite `<details>` del contexto, limita la sección a 12000 caracteres y añade el índice y conexiones planificadas. La respuesta exitosa es `{"answer":"…","provider":"codex"}`; la respuesta se limita a 16000 caracteres. No se persiste la conversación completa automáticamente: la acción de anclar guarda la última pregunta/respuesta como nota.
+El servidor verifica sección y versión, omite `<details>` del contexto, limita la sección a 12000 caracteres y añade el índice y conexiones planificadas. La respuesta exitosa es `{"answer":"…","provider":"codex"}`; la respuesta se limita a 16000 caracteres. No se persiste la conversación completa automáticamente: solo se guarda como nota el resumen que el lector aprueba.
 El endpoint no califica intentos. Pedir una reformulación no cambia los archivos del curso. El navegador no puede elegir un comando, una ruta local ni el binario ejecutado.
 
 ## Errores HTTP

@@ -4,7 +4,7 @@ import { randomUUID } from 'node:crypto';
 import { dataRoot } from './settings.mjs';
 import { outsideGit, save } from '../review/index.mjs';
 
-export const initialState = () => ({ schema: 1, notes: [], attempts: [], position: null });
+export const initialState = () => ({ schema: 1, notes: [], attempts: [], position: null, visited: [] });
 let queue = Promise.resolve();
 export async function statePath() {
   const root = await dataRoot();
@@ -33,6 +33,9 @@ export function applyAction(state, action, chapter) {
       version: chapter.version, answer: action.answer, assisted: !!action.assisted, createdAt: at });
   } else if (action.type === 'position') {
     state.position = { section: section.id, version: chapter.version, updatedAt: at };
+    state.visited ??= []; // Files written before this field existed stay valid.
+    if (!state.visited.some(v => v.section === section.id && v.version === chapter.version))
+      state.visited.push({ section: section.id, version: chapter.version });
   } else throw Object.assign(new Error('No se pudo guardar: datos inválidos.'), { status: 400 });
   return state;
 }
